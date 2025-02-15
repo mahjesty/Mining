@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pro Crypto Mining Simulator - Achievements</title>
+  <style>
+    /* Common Styles */
+    body { background-color: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    header { background-color: #161b22; padding: 20px; text-align: center; color: gold; }
+    nav { background-color: #21262d; }
+    nav ul { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; }
+    nav ul li { margin: 0; }
+    nav ul li a { display: block; padding: 15px 20px; color: #c9d1d9; text-decoration: none; }
+    nav ul li a:hover { background-color: #30363d; color: gold; }
+    main { padding: 20px; max-width: 900px; margin: auto; }
+    footer { text-align: center; padding: 10px; background-color: #161b22; position: fixed; bottom: 0; width: 100%; }
+    .achievement-item {
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Achievements</h1>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="mining.html">Mining</a></li>
+      <li><a href="upgrades.html">Upgrades</a></li>
+      <li><a href="market.html">Market</a></li>
+      <li><a href="achievements.html" class="active">Achievements</a></li>
+    </ul>
+  </nav>
+  <main>
+    <h2>Your Achievements</h2>
+    <div id="achievementsList">
+      <!-- Achievements will be loaded here -->
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Pro Crypto Mining Simulator</p>
+  </footer>
+  
+  <script>
+    (function(){
+      // Default achievements (conditions here are no longer needed on this page)
+      let achievements = [
+        { id: 1, title: "First Strike", achieved: false },
+        { id: 2, title: "Coin Collector", achieved: false },
+        { id: 3, title: "Seasoned Miner", achieved: false },
+        { id: 4, title: "Elite Extractor", achieved: false },
+        { id: 5, title: "Mining Tycoon", achieved: false }
+      ];
+      
+      // Load stored achievements if available
+      const stored = localStorage.getItem('achievements');
+      if(stored) { achievements = JSON.parse(stored); }
+      
+      function updateUI() {
+        const list = document.getElementById('achievementsList');
+        list.innerHTML = '';
+        achievements.forEach(ach => {
+          const div = document.createElement('div');
+          div.className = 'achievement-item';
+          div.textContent = ach.title + (ach.achieved ? " (Unlocked)" : " (Locked)");
+          list.appendChild(div);
+        });
+      }
+      
+      updateUI();
+    })();
+  </script>
+</body>
+</html>

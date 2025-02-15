@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pro Crypto Mining Simulator - Upgrades</title>
+  <style>
+    /* Common Styles */
+    body { background-color: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    header { background-color: #161b22; padding: 20px; text-align: center; color: gold; }
+    nav { background-color: #21262d; }
+    nav ul { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; }
+    nav ul li { margin: 0; }
+    nav ul li a { display: block; padding: 15px 20px; color: #c9d1d9; text-decoration: none; }
+    nav ul li a:hover { background-color: #30363d; color: gold; }
+    main { padding: 20px; max-width: 900px; margin: auto; }
+    footer { text-align: center; padding: 10px; background-color: #161b22; position: fixed; bottom: 0; width: 100%; }
+    
+    .upgrade-card {
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: gold; border: none; border-radius: 5px;
+      color: black; padding: 10px 20px; font-size: 1em; cursor: pointer;
+      margin: 5px; transition: background-color 0.3s;
+    }
+    button:hover { background-color: #ffcc00; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Upgrades</h1>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="mining.html">Mining</a></li>
+      <li><a href="upgrades.html" class="active">Upgrades</a></li>
+      <li><a href="market.html">Market</a></li>
+      <li><a href="achievements.html">Achievements</a></li>
+    </ul>
+  </nav>
+  <main>
+    <div class="upgrade-card">
+      <h3>Increase Mining Power</h3>
+      <p>Earn more coins per mine operation.</p>
+      <p>Cost: <span id="upgradeMiningPowerCost">50</span> coins</p>
+      <button id="upgradeMiningPowerButton">Upgrade Mining Power</button>
+    </div>
+    <div class="upgrade-card">
+      <h3>Enhance Auto-Mining Speed</h3>
+      <p>Reduce the auto-mining interval by 100ms (minimum 200ms).</p>
+      <p>Cost: <span id="upgradeAutoSpeedCost">100</span> coins</p>
+      <button id="upgradeAutoSpeedButton">Upgrade Auto-Mining Speed</button>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Pro Crypto Mining Simulator</p>
+  </footer>
+  
+  <script>
+    (function(){
+      // Retrieve state
+      let coins = Number(localStorage.getItem('coins')) || 0;
+      let miningPower = Number(localStorage.getItem('miningPower')) || 1;
+      let autoMiningInterval = Number(localStorage.getItem('autoMiningInterval')) || 1000;
+      let upgradeMiningPowerCost = Number(localStorage.getItem('upgradeMiningPowerCost')) || 50;
+      let upgradeAutoSpeedCost = Number(localStorage.getItem('upgradeAutoSpeedCost')) || 100;
+      
+      function saveState() {
+        localStorage.setItem('coins', coins);
+        localStorage.setItem('miningPower', miningPower);
+        localStorage.setItem('autoMiningInterval', autoMiningInterval);
+        localStorage.setItem('upgradeMiningPowerCost', upgradeMiningPowerCost);
+        localStorage.setItem('upgradeAutoSpeedCost', upgradeAutoSpeedCost);
+      }
+      
+      function updateUI() {
+        document.getElementById('upgradeMiningPowerCost').textContent = upgradeMiningPowerCost;
+        document.getElementById('upgradeAutoSpeedCost').textContent = upgradeAutoSpeedCost;
+        saveState();
+      }
+      
+      document.getElementById('upgradeMiningPowerButton').addEventListener('click', () => {
+        if(coins >= upgradeMiningPowerCost) {
+          coins -= upgradeMiningPowerCost;
+          miningPower++;
+          upgradeMiningPowerCost = Math.floor(upgradeMiningPowerCost * 1.5);
+          updateUI();
+          alert("Mining Power upgraded!");
+        } else {
+          alert("Not enough coins for Mining Power upgrade!");
+        }
+      });
+      
+      document.getElementById('upgradeAutoSpeedButton').addEventListener('click', () => {
+        if(coins >= upgradeAutoSpeedCost && autoMiningInterval > 200) {
+          coins -= upgradeAutoSpeedCost;
+          autoMiningInterval = Math.max(200, autoMiningInterval - 100);
+          upgradeAutoSpeedCost = Math.floor(upgradeAutoSpeedCost * 1.7);
+          updateUI();
+          alert("Auto-Mining Speed upgraded!");
+        } else {
+          alert("Not enough coins or auto-mining interval is already at minimum!");
+        }
+      });
+      
+      updateUI();
+    })();
+  </script>
+</body>
+</html>

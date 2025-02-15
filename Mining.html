@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pro Crypto Mining Simulator - Mining</title>
+  <style>
+    /* Common Styles */
+    body { background-color: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    header { background-color: #161b22; padding: 20px; text-align: center; color: gold; }
+    nav { background-color: #21262d; }
+    nav ul { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; }
+    nav ul li { margin: 0; }
+    nav ul li a { display: block; padding: 15px 20px; color: #c9d1d9; text-decoration: none; }
+    nav ul li a:hover { background-color: #30363d; color: gold; }
+    main { padding: 20px; max-width: 900px; margin: auto; }
+    footer { text-align: center; padding: 10px; background-color: #161b22; position: fixed; bottom: 0; width: 100%; }
+    
+    /* Stats & Controls */
+    .stats p { font-size: 1.2em; margin: 10px 0; }
+    button {
+      background-color: gold; border: none; border-radius: 5px;
+      color: black; padding: 10px 20px; font-size: 1em; cursor: pointer;
+      margin: 5px; transition: background-color 0.3s;
+    }
+    button:hover { background-color: #ffcc00; }
+    
+    /* Mining Area & Animations */
+    #miningArea {
+      margin: 20px auto;
+      position: relative;
+      height: 200px;
+      width: 100%;
+      max-width: 600px;
+      border: 2px solid #30363d;
+      border-radius: 10px;
+      background-color: #21262d;
+      overflow: hidden;
+    }
+    #minerIcon {
+      font-size: 60px;
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      animation: swing 1.2s ease-in-out infinite;
+    }
+    @keyframes swing {
+      0% { transform: translateX(-50%) rotate(0deg); }
+      50% { transform: translateX(-50%) rotate(15deg); }
+      100% { transform: translateX(-50%) rotate(0deg); }
+    }
+    .coin {
+      position: absolute;
+      font-size: 24px;
+      pointer-events: none;
+      animation: coinFly 1s forwards;
+    }
+    @keyframes coinFly {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mining Operations</h1>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="mining.html" class="active">Mining</a></li>
+      <li><a href="upgrades.html">Upgrades</a></li>
+      <li><a href="market.html">Market</a></li>
+      <li><a href="achievements.html">Achievements</a></li>
+    </ul>
+  </nav>
+  <main>
+    <div class="stats">
+      <p>Coins: <span id="coinsDisplay">0</span></p>
+      <p>Energy: <span id="energyDisplay">100</span>%</p>
+      <p>Mining Power: <span id="miningPowerDisplay">1</span></p>
+      <p>Cash: $<span id="cashDisplay">0</span></p>
+    </div>
+    <div id="miningArea">
+      <div id="minerIcon">⛏️</div>
+    </div>
+    <div class="controls">
+      <button id="mineButton">Mine Now</button>
+      <button id="toggleAutoMining">Enable Auto-Mining</button>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Pro Crypto Mining Simulator</p>
+  </footer>
+  
+  <script>
+    (function(){
+      // Retrieve state from localStorage (or default values)
+      let coins = Number(localStorage.getItem('coins')) || 0;
+      let energy = Number(localStorage.getItem('energy')) || 100;
+      let miningPower = Number(localStorage.getItem('miningPower')) || 1;
+      let cash = Number(localStorage.getItem('cash')) || 0;
+      let autoMiningEnabled = localStorage.getItem('autoMiningEnabled') === 'true' || false;
+      let autoMiningInterval = Number(localStorage.getItem('autoMiningInterval')) || 1000;
+      let miningInProgress = false;
+      
+      function saveState() {
+        localStorage.setItem('coins', coins);
+        localStorage.setItem('energy', energy);
+        localStorage.setItem('miningPower', miningPower);
+        localStorage.setItem('cash', cash);
+        localStorage.setItem('autoMiningEnabled', autoMiningEnabled);
+        localStorage.setItem('autoMiningInterval', autoMiningInterval);
+      }
+      
+      function updateUI() {
+        document.getElementById('coinsDisplay').textContent = coins;
+        document.getElementById('energyDisplay').textContent = energy;
+        document.getElementById('miningPowerDisplay').textContent = miningPower;
+        document.getElementById('cashDisplay').textContent = cash;
+        document.getElementById('toggleAutoMining').textContent = autoMiningEnabled ? "Disable Auto-Mining" : "Enable Auto-Mining";
+        saveState();
+      }
+      
+      function animateMining() {
+        const minerIcon = document.getElementById('minerIcon');
+        if(minerIcon) {
+          const coin = document.createElement('div');
+          coin.className = 'coin';
+          coin.textContent = "🪙";
+          const rect = minerIcon.getBoundingClientRect();
+          coin.style.left = (rect.left + rect.width / 2 + (Math.random() * 30 - 15)) + 'px';
+          coin.style.top = rect.top + 'px';
+          document.body.appendChild(coin);
+          setTimeout(() => { coin.remove(); }, 1000);
+        }
+      }
+      
+      function mine() {
+        if(miningInProgress || energy < 10) return;
+        miningInProgress = true;
+        animateMining();
+        setTimeout(() => {
+          coins += miningPower;
+          energy = Math.max(0, energy - 10);
+          miningInProgress = false;
+          updateUI();
+        }, 500);
+      }
+      
+      let autoMiningTimer = null;
+      function startAutoMining() {
+        if(autoMiningTimer === null && autoMiningEnabled) {
+          autoMiningTimer = setInterval(() => {
+            if(!miningInProgress && energy >= 10) { mine(); }
+          }, autoMiningInterval);
+        }
+      }
+      
+      function stopAutoMining() {
+        if(autoMiningTimer !== null) {
+          clearInterval(autoMiningTimer);
+          autoMiningTimer = null;
+        }
+      }
+      
+      document.getElementById('mineButton').addEventListener('click', mine);
+      document.getElementById('toggleAutoMining').addEventListener('click', function(){
+        autoMiningEnabled = !autoMiningEnabled;
+        if(autoMiningEnabled) { startAutoMining(); } else { stopAutoMining(); }
+        updateUI();
+      });
+      
+      // Energy regenerates gradually
+      setInterval(() => {
+        if(energy < 100) { energy += 1; updateUI(); }
+      }, 1000);
+      
+      if(autoMiningEnabled) { startAutoMining(); }
+      updateUI();
+    })();
+  </script>
+</body>
+</html>

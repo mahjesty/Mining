@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pro Crypto Mining Simulator - Market</title>
+  <style>
+    /* Common Styles */
+    body { background-color: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    header { background-color: #161b22; padding: 20px; text-align: center; color: gold; }
+    nav { background-color: #21262d; }
+    nav ul { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; }
+    nav ul li { margin: 0; }
+    nav ul li a { display: block; padding: 15px 20px; color: #c9d1d9; text-decoration: none; }
+    nav ul li a:hover { background-color: #30363d; color: gold; }
+    main { padding: 20px; max-width: 900px; margin: auto; }
+    footer { text-align: center; padding: 10px; background-color: #161b22; position: fixed; bottom: 0; width: 100%; }
+    button {
+      background-color: gold; border: none; border-radius: 5px;
+      color: black; padding: 10px 20px; font-size: 1em; cursor: pointer;
+      margin: 5px; transition: background-color 0.3s;
+    }
+    button:hover { background-color: #ffcc00; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Market</h1>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="mining.html">Mining</a></li>
+      <li><a href="upgrades.html">Upgrades</a></li>
+      <li><a href="market.html" class="active">Market</a></li>
+      <li><a href="achievements.html">Achievements</a></li>
+    </ul>
+  </nav>
+  <main>
+    <h2>Sell Your Coins</h2>
+    <p>Conversion Rate: 100 coins = $1</p>
+    <button id="sellCoinsButton">Sell 100 Coins</button>
+    <p>Your Cash: $<span id="cashDisplay">0</span></p>
+  </main>
+  <footer>
+    <p>&copy; 2025 Pro Crypto Mining Simulator</p>
+  </footer>
+  
+  <script>
+    (function(){
+      let coins = Number(localStorage.getItem('coins')) || 0;
+      let cash = Number(localStorage.getItem('cash')) || 0;
+      
+      function saveState() {
+        localStorage.setItem('coins', coins);
+        localStorage.setItem('cash', cash);
+      }
+      
+      function updateUI() {
+        document.getElementById('cashDisplay').textContent = cash;
+        saveState();
+      }
+      
+      document.getElementById('sellCoinsButton').addEventListener('click', () => {
+        if(coins >= 100) {
+          let sales = Math.floor(coins / 100);
+          coins -= sales * 100;
+          cash += sales;
+          updateUI();
+          alert("Sold " + (sales * 100) + " coins for $" + sales);
+        } else {
+          alert("You need at least 100 coins to sell!");
+        }
+      });
+      
+      updateUI();
+    })();
+  </script>
+</body>
+</html>

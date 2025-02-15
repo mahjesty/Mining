@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enhanced Investment Plans with Withdrawal</title>
+  <style>
+    /* ===== Global Dark Theme Styles ===== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #000; /* Black background */
+      color: #eee;
+    }
+    /* Containers use a dark gray background with light text */
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #1a1a1a;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
+      padding: 24px;
+      margin-bottom: 40px;
+    }
+    h1, h2 {
+      color: #fff;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+    }
+    
+    /* ===== Plans Page ===== */
+    .plan-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .plan-card {
+      background: #2a2a2a;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+      padding: 24px;
+      flex: 1;
+      min-width: 250px;
+      max-width: 350px;
+      text-align: center;
+    }
+    .plan-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+    .plan-card p {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      color: #ccc;
+    }
+    button {
+      padding: 12px 20px;
+      background-color: #388e3c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    button:hover {
+      background-color: #66bb6a;
+    }
+    .withdraw-button {
+      background-color: #e53935;
+    }
+    .withdraw-button:hover {
+      background-color: #ef5350;
+    }
+    
+    /* ===== Input Form ===== */
+    .input-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .input-form label {
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: -4px;
+      color: #ccc;
+    }
+    .input-form input,
+    .input-form select {
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background-color: #2a2a2a;
+      color: #eee;
+    }
+    
+    /* ===== Investment Details Page ===== */
+    .plan-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .status-badge {
+      background-color: #28a745;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+    .plan-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .info-block {
+      flex: 1;
+      min-width: 200px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.05);
+      text-align: center;
+    }
+    .info-title {
+      font-size: 0.875rem;
+      color: #aaa;
+    }
+    .info-value {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 8px;
+      color: #fff;
+    }
+    .profit { color: #28a745; }
+    .locked { color: #999; font-style: italic; }
+    
+    .details-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .detail-item {
+      flex: 1;
+      min-width: 200px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.05);
+    }
+    .detail-item strong {
+      display: inline-block;
+      margin-bottom: 6px;
+      font-size: 0.875rem;
+      color: #aaa;
+    }
+    .detail-value {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #fff;
+    }
+    
+    /* Countdown Timer */
+    #withdrawCountdown {
+      margin-top: 16px;
+      font-size: 1rem;
+      color: #ccc;
+      text-align: center;
+    }
+    
+    /* ===== Chart Container ===== */
+    .chart-container { width: 100%; margin: 24px 0; }
+    
+    /* ===== Transactions Table ===== */
+    .transactions h2 { font-size: 1.25rem; margin-bottom: 12px; color: #fff; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+      color: #eee;
+    }
+    table th, table td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #444;
+    }
+    table thead {
+      background-color: #333;
+    }
+    .no-transactions { text-align: center; color: #999; }
+    
+    /* ===== Withdrawal Page ===== */
+    #withdrawalPage { display: none; }
+    
+    /* Transaction Timeline (Professional Progress Indicator) */
+    .timeline {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin: 40px 0;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #444;
+      z-index: 1;
+    }
+    .timeline-step {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      flex: 1;
+    }
+    .timeline-step .circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #444;
+      margin: 0 auto;
+      line-height: 30px;
+      color: #eee;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .timeline-step.active .circle,
+    .timeline-step.completed .circle {
+      background: #388e3c;
+    }
+    .timeline-step .label {
+      margin-top: 8px;
+      color: #ccc;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+    }
+    .timeline-step.active .label,
+    .timeline-step.completed .label {
+      color: #fff;
+    }
+    
+    /* Transaction Progress Section */
+    #transactionProgressSection {
+      display: none;
+      margin-top: 20px;
+    }
+    
+    /* Withdrawal History Section */
+    #withdrawalHistorySection { margin-top: 40px; }
+    
+    /* Preloader (if needed) */
+    .preloader {
+      display: none;
+      margin: 20px auto;
+      border: 4px solid #444;
+      border-top: 4px solid #388e3c;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      .plan-info, .details-list { flex-direction: column; }
+      .plan-list { flex-direction: column; }
+    }
+  </style>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ========== 1) Plans Selection Page ========== -->
+  <div class="container" id="plansPage">
+    <h1>Available Investment Plans</h1>
+    <div class="plan-list">
+      <!-- Beginner Plan (7 seconds) -->
+      <div class="plan-card">
+        <h3>Beginner Plan</h3>
+        <p>3.5% Daily for 7 Seconds</p>
+        <p>Minimum investment: $500</p>
+        <p>Start Date: Optional</p>
+        <button onclick="showInvestmentForm('Beginner Plan', 500, 7, 0.035, false)">Invest Now</button>
+      </div>
+      <!-- Intermediate Plan (days) -->
+      <div class="plan-card">
+        <h3>Intermediate Plan</h3>
+        <p>5% Daily for 14 Days</p>
+        <p>Minimum investment: $1000</p>
+        <p>Start Date: Mandatory</p>
+        <button onclick="showInvestmentForm('Intermediate Plan', 1000, 14, 0.05, true)">Invest Now</button>
+      </div>
+      <!-- Advanced Plan (days) -->
+      <div class="plan-card">
+        <h3>Advanced Plan</h3>
+        <p>7% Daily for 30 Days</p>
+        <p>Minimum investment: $3000</p>
+        <p>Start Date: Optional</p>
+        <button onclick="showInvestmentForm('Advanced Plan', 3000, 30, 0.07, false)">Invest Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 2) Investment Form Page ========== -->
+  <div class="container" id="investmentFormPage" style="display: none;">
+    <h1>Investment Form</h1>
+    <h2 id="selectedPlanTitle"></h2>
+    <div class="input-form">
+      <label for="investmentAmount">Investment Amount (USD):</label>
+      <input type="number" id="investmentAmount" min="1" required />
+      <label for="startDateInput">Start Date:</label>
+      <input type="date" id="startDateInput" />
+      <label for="planDuration">Plan Duration:</label>
+      <input type="text" id="planDuration" disabled />
+      <label for="planReturn">Daily Return Rate:</label>
+      <input type="text" id="planReturn" disabled />
+      <button onclick="submitInvestment()">Submit Investment</button>
+    </div>
+  </div>
+
+  <!-- ========== 3) Investment Details Page ========== -->
+  <div class="container" id="investmentDetailsPage" style="display: none;">
+    <div class="plan-header">
+      <h1 id="planTitle"></h1>
+      <div class="status-badge" id="planStatus">Active</div>
+    </div>
+    <!-- Overview Info -->
+    <div class="plan-info">
+      <div class="info-block">
+        <div class="info-title">Invested Amount</div>
+        <div class="info-value" id="investedAmount">$0.00</div>
+      </div>
+      <div class="info-block">
+        <div class="info-title">Profit Earned</div>
+        <div class="info-value profit" id="profitEarned">$0.00</div>
+      </div>
+      <div class="info-block">
+        <div class="info-title">Total Return</div>
+        <div class="info-value" id="totalReturn">$0.00</div>
+      </div>
+    </div>
+    <!-- Detailed Plan Info -->
+    <div class="details-list">
+      <div class="detail-item">
+        <strong>Duration:</strong>
+        <div class="detail-value" id="duration">--</div>
+      </div>
+      <div class="detail-item">
+        <strong>Start Date:</strong>
+        <div class="detail-value" id="startDate">N/A</div>
+      </div>
+      <div class="detail-item">
+        <strong>End Date:</strong>
+        <div class="detail-value" id="endDate">N/A</div>
+      </div>
+      <div class="detail-item">
+        <strong>ROI Interval:</strong>
+        <div class="detail-value">Daily</div>
+      </div>
+    </div>
+    
+    <!-- Countdown Timer for Withdrawal Availability -->
+    <div id="withdrawCountdown">Calculating time until withdrawal...</div>
+    
+    <!-- Earnings Chart -->
+    <div class="chart-container">
+      <h2>Earnings Over Time</h2>
+      <canvas id="earningsChart"></canvas>
+    </div>
+    
+    <!-- Transactions Section with Enhanced Details -->
+    <div class="transactions">
+      <h2>Transaction Details</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Amount (USD)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="transactionDetails">
+          <tr>
+            <td id="transId">INV-001</td>
+            <td>Investment</td>
+            <td id="transactionDate">--</td>
+            <td id="transactionAmount">$0.00</td>
+            <td>Completed</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Withdraw Button (visible when matured) -->
+    <button id="withdrawButton" class="withdraw-button" style="display: none;" onclick="handleWithdraw()">Withdraw</button>
+  </div>
+
+  <!-- ========== 4) Withdrawal Page with Professional Transaction Timeline & History ========== -->
+  <div class="container" id="withdrawalPage" style="display: none;">
+    <h1>Withdrawal Options</h1>
+    <div class="input-form">
+      <label for="withdrawalAmount">Withdrawal Amount (USD):</label>
+      <input type="number" id="withdrawalAmount" min="1" required />
+      <label for="withdrawalOption">Withdrawal To:</label>
+      <select id="withdrawalOption">
+        <option value="trading">Trading Balance</option>
+        <option value="funding">Funding Balance</option>
+      </select>
+      <button onclick="submitWithdrawalRequest()">Submit Withdrawal</button>
+    </div>
+    
+    <!-- Professional Transaction Timeline -->
+    <div id="transactionProgressSection">
+      <h2>Transaction Progress</h2>
+      <div class="timeline" id="transactionTimeline">
+        <div class="timeline-step" id="step1">
+          <div class="circle">1</div>
+          <div class="label">Confirming</div>
+        </div>
+        <div class="timeline-step" id="step2">
+          <div class="circle">2</div>
+          <div class="label">Processing</div>
+        </div>
+        <div class="timeline-step" id="step3">
+          <div class="circle">3</div>
+          <div class="label">Finalizing</div>
+        </div>
+        <div class="timeline-step" id="step4">
+          <div class="circle">4</div>
+          <div class="label">Confirmed</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Withdrawal History Section with Enhanced Details -->
+    <div id="withdrawalHistorySection">
+      <h2>Withdrawal History</h2>
+      <table id="withdrawalHistoryTable">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Date</th>
+            <th>Amount (USD)</th>
+            <th>Destination</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- History rows will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <script>
+    // Global variables for plan and user data
+    let currentPlanName = '';
+    let currentMinAmount = 0;
+    let currentDuration = 0; // In seconds for Beginner, in days for others
+    let currentDailyRate = 0;
+    let startDateMandatory = false;
+    let userInvestmentAmount = 0;
+    let userStartDate = null;
+    let userEndDate = null;
+    let chartInstance = null;
+    
+    // Show investment form for selected plan
+    function showInvestmentForm(planName, minAmount, duration, dailyRate, isMandatory) {
+      document.getElementById('plansPage').style.display = 'none';
+      document.getElementById('investmentFormPage').style.display = 'block';
+      currentPlanName = planName;
+      currentMinAmount = minAmount;
+      currentDuration = duration;
+      currentDailyRate = dailyRate;
+      startDateMandatory = isMandatory;
+      document.getElementById('selectedPlanTitle').textContent = planName;
+      document.getElementById('planDuration').value = (planName === 'Beginner Plan') ? `${duration} Seconds` : `${duration} Days`;
+      document.getElementById('planReturn').value = `${(dailyRate * 100).toFixed(1)}% Daily`;
+      const dateInput = document.getElementById('startDateInput');
+      dateInput.required = isMandatory;
+      dateInput.value = '';
+    }
+    
+    // Submit investment form
+    function submitInvestment() {
+      userInvestmentAmount = parseFloat(document.getElementById('investmentAmount').value);
+      const chosenDate = document.getElementById('startDateInput').value;
+      if (isNaN(userInvestmentAmount) || userInvestmentAmount < currentMinAmount) {
+        alert(`Please enter a valid amount >= $${currentMinAmount}.`);
+        return;
+      }
+      if (startDateMandatory && !chosenDate) {
+        alert('Please select a valid start date for this plan.');
+        return;
+      }
+      const now = new Date();
+      userStartDate = chosenDate ? new Date(chosenDate + 'T00:00:00') : now;
+      
+      // Calculate end date based on plan type
+      if (currentPlanName === "Beginner Plan") {
+        userEndDate = new Date(userStartDate);
+        userEndDate.setSeconds(userEndDate.getSeconds() + currentDuration);
+      } else {
+        userEndDate = new Date(userStartDate);
+        userEndDate.setDate(userEndDate.getDate() + currentDuration);
+      }
+      
+      // Switch to details page
+      document.getElementById('investmentFormPage').style.display = 'none';
+      document.getElementById('investmentDetailsPage').style.display = 'block';
+      document.getElementById('planTitle').textContent = currentPlanName;
+      document.getElementById('investedAmount').textContent = `$${userInvestmentAmount.toFixed(2)}`;
+      document.getElementById('profitEarned').textContent = 'Locked';
+      document.getElementById('profitEarned').classList.add('locked');
+      document.getElementById('totalReturn').textContent = 'Locked';
+      document.getElementById('duration').textContent = (currentPlanName === "Beginner Plan") ? `${currentDuration} seconds` : `${currentDuration} days`;
+      document.getElementById('startDate').textContent = userStartDate.toLocaleString();
+      document.getElementById('endDate').textContent = userEndDate.toLocaleString();
+      document.getElementById('transactionDate').textContent = new Date().toLocaleString();
+      document.getElementById('transactionAmount').textContent = `$${userInvestmentAmount.toFixed(2)}`;
+      // Generate a random transaction ID for demonstration
+      document.getElementById('transId').textContent = "INV-" + Math.floor(Math.random() * 9000 + 1000);
+      
+      initEarningsChart();
+      updateEarningsData();
+    }
+    
+    // Initialize Chart.js instance
+    function initEarningsChart() {
+      const ctx = document.getElementById('earningsChart').getContext('2d');
+      if (chartInstance) { chartInstance.destroy(); }
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Earnings ($)',
+            data: [],
+            borderColor: '#388e3c',
+            backgroundColor: 'rgba(56, 142, 60, 0.1)',
+            fill: true,
+            tension: 0.1,
+          }],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { title: { display: true, text: (currentPlanName === "Beginner Plan") ? 'Seconds' : 'Days' } },
+            y: { title: { display: true, text: 'Balance (USD)' }, beginAtZero: true },
+          },
+        },
+      });
+    }
+    
+    // Update earnings data, countdown timer, and unlock withdrawal if matured
+    function updateEarningsData() {
+      const now = new Date();
+      let simulatedBalance = userInvestmentAmount;
+      let timePassed = 0;
+      let timeUnit = "";
+      
+      if (currentPlanName === "Beginner Plan") {
+        timePassed = Math.floor((now - userStartDate) / 1000);
+        timeUnit = "seconds";
+      } else {
+        timePassed = daysBetween(userStartDate, now);
+        timeUnit = "days";
+      }
+      
+      const labels = [];
+      const data = [];
+      
+      for (let t = 0; t <= Math.min(timePassed, currentDuration); t++) {
+        if (t > 0) { simulatedBalance *= (1 + currentDailyRate); }
+        labels.push(currentPlanName === "Beginner Plan" ? `Sec ${t}` : `Day ${t}`);
+        data.push(simulatedBalance.toFixed(2));
+      }
+      
+      chartInstance.data.labels = labels;
+      chartInstance.data.datasets[0].data = data;
+      chartInstance.update();
+      
+      // Update countdown timer for withdrawal availability
+      const timeLeft = userEndDate - now;
+      const countdownElem = document.getElementById('withdrawCountdown');
+      if (timeLeft > 0) {
+        if (currentPlanName === "Beginner Plan") {
+          countdownElem.textContent = `Withdrawal available in: ${Math.floor(timeLeft / 1000)} seconds`;
+        } else {
+          const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+          countdownElem.textContent = `Withdrawal available in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+      } else {
+        countdownElem.textContent = `Withdrawal available now!`;
+      }
+      
+      // Show or hide Withdraw button based on maturity
+      const withdrawBtn = document.getElementById('withdrawButton');
+      if (timePassed >= currentDuration) {
+        const finalBalance = parseFloat(data[data.length - 1]);
+        const profit = finalBalance - userInvestmentAmount;
+        document.getElementById('profitEarned').textContent = `$${profit.toFixed(2)}`;
+        document.getElementById('profitEarned').classList.remove('locked');
+        document.getElementById('totalReturn').textContent = `$${finalBalance.toFixed(2)}`;
+        withdrawBtn.style.display = 'inline-block';
+      } else {
+        document.getElementById('profitEarned').textContent = 'Locked';
+        document.getElementById('profitEarned').classList.add('locked');
+        document.getElementById('totalReturn').textContent = 'Locked';
+        withdrawBtn.style.display = 'none';
+      }
+      
+      // Update every second for Beginner Plan, every 10 seconds for others (demo)
+      setTimeout(updateEarningsData, (currentPlanName === "Beginner Plan") ? 1000 : 10000);
+    }
+    
+    // Helper: days between two dates (rounded down)
+    function daysBetween(date1, date2) {
+      const oneDay = 24 * 60 * 60 * 1000;
+      return Math.floor((date2 - date1) / oneDay);
+    }
+    
+    // Handle Withdraw button click: transition to withdrawal page
+    function handleWithdraw() {
+      document.getElementById('investmentDetailsPage').style.display = 'none';
+      document.getElementById('withdrawalPage').style.display = 'block';
+      // Initialize timeline: mark step1 active initially
+      document.getElementById('step1').classList.add('active');
+      document.getElementById('step2').classList.remove('active','completed');
+      document.getElementById('step3').classList.remove('active','completed');
+      document.getElementById('step4').classList.remove('active','completed');
+    }
+    
+    // --- Withdrawal Page Functions ---
+    // Submit withdrawal request and simulate professional transaction timeline over 6 minutes (360 seconds)
+    function submitWithdrawalRequest() {
+      let amount = parseFloat(document.getElementById('withdrawalAmount').value);
+      let option = document.getElementById('withdrawalOption').value;
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid withdrawal amount.");
+        return;
+      }
+      
+      // Hide withdrawal form and show transaction progress timeline
+      document.querySelector('#withdrawalPage .input-form').style.display = 'none';
+      document.getElementById('transactionProgressSection').style.display = 'block';
+      
+      // Schedule timeline updates:
+      // Step 1 is active at 0 seconds (already set on handleWithdraw)
+      // At 120 seconds (2 minutes): complete step 1 and activate step 2
+      setTimeout(() => {
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step1').classList.add('completed');
+        document.getElementById('step2').classList.add('active');
+      }, 120000);
+      
+      // At 240 seconds (4 minutes): complete step 2 and activate step 3
+      setTimeout(() => {
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step2').classList.add('completed');
+        document.getElementById('step3').classList.add('active');
+      }, 240000);
+      
+      // At 360 seconds (6 minutes): complete step 3 and activate step 4 (Confirmed)
+      setTimeout(() => {
+        document.getElementById('step3').classList.remove('active');
+        document.getElementById('step3').classList.add('completed');
+        document.getElementById('step4').classList.add('active');
+        // Finalize: add withdrawal history record
+        addWithdrawalHistory(amount, option);
+        // Reset the withdrawal page after a short delay (5 seconds)
+        setTimeout(() => {
+          document.getElementById('withdrawalAmount').value = '';
+          document.querySelector('#withdrawalPage .input-form').style.display = 'block';
+          document.getElementById('transactionProgressSection').style.display = 'none';
+          // Reset timeline steps
+          document.getElementById('step1').classList.remove('active','completed');
+          document.getElementById('step2').classList.remove('active','completed');
+          document.getElementById('step3').classList.remove('active','completed');
+          document.getElementById('step4').classList.remove('active','completed');
+        }, 5000);
+      }, 360000);
+    }
+    
+    // Add a new withdrawal record to the history table with enhanced details
+    function addWithdrawalHistory(amount, option) {
+      let historyTableBody = document.getElementById('withdrawalHistoryTable').getElementsByTagName('tbody')[0];
+      let newRow = historyTableBody.insertRow();
+      let cellId = newRow.insertCell(0);
+      let cellDate = newRow.insertCell(1);
+      let cellAmount = newRow.insertCell(2);
+      let cellOption = newRow.insertCell(3);
+      let cellStatus = newRow.insertCell(4);
+      // Generate a random transaction ID for demonstration
+      cellId.textContent = "WD-" + Math.floor(Math.random() * 9000 + 1000);
+      cellDate.textContent = new Date().toLocaleString();
+      cellAmount.textContent = `$${amount.toFixed(2)}`;
+      cellOption.textContent = (option === 'trading') ? "Trading Balance" : "Funding Balance";
+      cellStatus.textContent = "Confirmed";
+    }
+  </script>
+</body>
+</html>

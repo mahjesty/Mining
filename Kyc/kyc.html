@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Professional KYC Onboarding</title>
+  <style>
+    /* Global Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #121212; color: #eee; font-family: Arial, sans-serif; }
+    .container { max-width: 600px; margin: 40px auto; background-color: #1e1e1e; padding: 20px; border-radius: 8px; }
+    /* Progress Bar */
+    .personal-progress { background-color: #333; border-radius: 5px; overflow: hidden; margin-bottom: 10px; height: 10px; }
+    .personal-progress-bar { height: 10px; background-color: #a8ff60; transition: width 0.3s ease; width: 0%; }
+    h2 { text-align: center; margin-bottom: 20px; color: #a8ff60; }
+    .form-stage { display: none; }
+    .form-stage.active { display: block; }
+    .form-group { margin-bottom: 15px; position: relative; }
+    label { display: block; margin-bottom: 5px; color: #ccc; }
+    input, select, textarea {
+      width: 100%; padding: 10px; background-color: #2a2a2a; border: 1px solid #444; border-radius: 4px;
+      color: #fff; font-size: 16px;
+    }
+    input::placeholder, textarea::placeholder { color: #888; }
+    .error { color: #ff6b6b; font-size: 14px; margin-top: 5px; visibility: hidden; }
+    .instruction {
+      color: #a8ff60; font-size: 14px; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 4px;
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%); pointer-events: none;
+    }
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+    button { background-color: #28a745; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    button:disabled { background-color: #555; cursor: not-allowed; }
+    #phoneVerifiedMsg { color: #28a745; font-size: 14px; margin-top: 5px; }
+    @media (max-width: 480px) { .container { padding: 10px; } }
+    /* State/province container */
+    #stateContainer { display: flex; flex-direction: column; }
+    @media (min-width: 600px) {
+      #stateContainer { flex-direction: row; align-items: center; }
+      #stateContainer label { flex: 1; margin-right: 10px; }
+      #stateContainer select, #stateContainer input { flex: 2; }
+    }
+    /* Phone number container */
+    #phoneGroup { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    #phoneGroup select { flex: 0 0 35%; max-width: 150px; }
+    #phoneGroup input { flex: 1; min-width: 150px; }
+    /* Camera styling */
+    video, canvas { width: 100%; border: 1px solid #444; border-radius: 4px; margin: 0 auto 10px auto; display: block; }
+    .capture-container { position: relative; border: 2px solid #444; border-radius: 8px; margin-top: 10px; overflow: hidden; background-color: #000; }
+    .overlay-box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px dashed #a8ff60;
+      width: 80%;
+      height: calc(80% / 1.586);
+      pointer-events: none;
+    }
+    .preview-img { width: 100%; display: none; margin-top: 10px; }
+    .loader { font-size: 14px; color: #a8ff60; text-align: center; margin-top: 10px; display: none; }
+    /* Stage 6: Live Video Verification */
+    .live-test-circle {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto;
+      border: 2px solid #28a745;
+      border-radius: 50%;
+      overflow: hidden;
+      background-color: #000;
+    }
+    #liveVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .detection-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    /* Stage 7: Review & Submit styles */
+    #reviewContainer { background: #222; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
+    #reviewContainer h3 { color: #a8ff60; margin-bottom: 10px; }
+    #reviewContainer p { margin: 5px 0; }
+    #reviewContainer p strong { color: #fff; }
+    #preloader { display: none; text-align: center; margin-top: 20px; }
+    #submitSuccess { display: none; text-align: center; margin-top: 20px; color: #28a745; }
+  </style>
+  <!-- Face-api.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <form id="kycForm">
+      <!-- Stage 1: Personal Details -->
+      <div id="stage1" class="form-stage active">
+        <div class="personal-progress"><div class="personal-progress-bar"></div></div>
+        <h2>Personal Details</h2>
+        <div class="form-group">
+          <label for="title">Title *</label>
+          <select id="title">
+            <option value="">Select Title</option>
+            <option>Mr</option>
+            <option>Mrs</option>
+            <option>Ms</option>
+            <option>Dr</option>
+            <option>Prof</option>
+          </select>
+          <div class="error" id="errorTitle"></div>
+        </div>
+        <div class="form-group">
+          <label for="firstName">First Name *</label>
+          <input type="text" id="firstName" name="firstName" placeholder="Enter first name" pattern="[A-Za-z]+" title="Only alphabets allowed" />
+          <div class="error" id="errorFirstName"></div>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last Name *</label>
+          <input type="text" id="lastName" name="lastName" placeholder="Enter last name" pattern="[A-Za-z]+" title="Only alphabets allowed" />
+          <div class="error" id="errorLastName"></div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" placeholder="example@example.com" />
+          <div class="error" id="errorEmail"></div>
+        </div>
+        <div class="form-group" id="phoneGroup">
+          <label style="width:100%;">Phone Number *</label>
+          <select id="phoneCode">
+            <option value="">Select Code</option>
+            <option value="+1" data-max="10">+1 (US/Canada)</option>
+            <option value="+44" data-max="10">+44 (UK)</option>
+            <option value="+91" data-max="10">+91 (India)</option>
+            <option value="+49" data-max="10">+49 (Germany)</option>
+            <option value="+33" data-max="9">+33 (France)</option>
+            <option value="+61" data-max="9">+61 (Australia)</option>
+            <option value="+64" data-max="8">+64 (New Zealand)</option>
+            <option value="+81" data-max="10">+81 (Japan)</option>
+            <option value="+82" data-max="10">+82 (South Korea)</option>
+            <option value="+86" data-max="11">+86 (China)</option>
+            <option value="+39" data-max="10">+39 (Italy)</option>
+            <option value="+34" data-max="9">+34 (Spain)</option>
+            <option value="+55" data-max="11">+55 (Brazil)</option>
+            <option value="+7" data-max="10">+7 (Russia)</option>
+            <option value="+52" data-max="10">+52 (Mexico)</option>
+            <option value="+27" data-max="9">+27 (South Africa)</option>
+            <option value="+65" data-max="8">+65 (Singapore)</option>
+            <option value="+62" data-max="10">+62 (Indonesia)</option>
+            <option value="+90" data-max="10">+90 (Turkey)</option>
+          </select>
+          <input type="tel" id="phoneNumber" placeholder="Enter phone number" />
+          <div class="error" id="errorPhone"></div>
+          <div id="phoneVerifiedMsg"></div>
+        </div>
+        <div class="form-group">
+          <label for="dob">Date of Birth *</label>
+          <input type="date" id="dob" />
+          <div class="error" id="errorDob"></div>
+        </div>
+        <div class="nav-buttons">
+          <button type="button" id="back1" disabled>Back</button>
+          <button type="button" id="next1" disabled>Next</button>
+        </div>
+      </div>
+      
+      <!-- Stage 2: Address Details -->
+      <div id="stage2" class="form-stage">
+        <div class="personal-progress"><div class="personal-progress-bar"></div></div>
+        <h2>Address Details</h2>
+        <div class="form-group">
+          <label for="street">Street Address *</label>
+          <input type="text" id="street" placeholder="123 Main St" />
+          <div class="error" id="errorStreet">Enter street address.</div>
+        </div>
+        <div class="form-group">
+          <label for="city">City *</label>
+          <input type="text" id="city" placeholder="Your city" />
+          <div class="error" id="errorCity">Enter city.</div>
+        </div>
+        <div class="form-group">
+          <label for="country">Country *</label>
+          <select id="country">
+            <option value="">Select Country</option>
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="Germany">Germany</option>
+            <option value="France">France</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Australia">Australia</option>
+            <option value="New Zealand">New Zealand</option>
+            <option value="Netherlands">Netherlands</option>
+            <option value="Belgium">Belgium</option>
+            <option value="Switzerland">Switzerland</option>
+            <option value="Austria">Austria</option>
+            <option value="Spain">Spain</option>
+            <option value="Italy">Italy</option>
+            <option value="Portugal">Portugal</option>
+            <option value="Sweden">Sweden</option>
+            <option value="Norway">Norway</option>
+            <option value="Denmark">Denmark</option>
+            <option value="Finland">Finland</option>
+            <option value="Ireland">Ireland</option>
+            <option value="Japan">Japan</option>
+            <option value="South Korea">South Korea</option>
+          </select>
+          <div class="error" id="errorCountry">Select country.</div>
+        </div>
+        <div class="form-group" id="stateContainer">
+          <label for="state">State / Province *</label>
+          <select id="stateSelect" style="display: none;">
+            <option value="">Select State/Province</option>
+          </select>
+          <input type="text" id="stateInput" placeholder="Enter State/Province" style="display: none;" />
+          <div class="error" id="errorState">Enter state/province.</div>
+        </div>
+        <div class="form-group">
+          <label for="postal">Postal Code *</label>
+          <input type="text" id="postal" placeholder="Postal Code" />
+          <div class="error" id="errorPostal">Enter postal code.</div>
+          <div class="error" id="errorAddressVerification">
+            We were unable to verify your address. Please ensure the details are correct or contact support for assistance.
+          </div>
+        </div>
+        <div id="loaderAddress" class="loader">Verifying address…</div>
+        <div class="nav-buttons">
+          <button type="button" id="back2">Back</button>
+          <button type="button" id="next2" disabled>Next</button>
+        </div>
+      </div>
+      
+      <!-- Stage 3: Financial Profile -->
+      <div id="stage3" class="form-stage">
+        <div class="personal-progress"><div class="personal-progress-bar"></div></div>
+        <h2>Financial Profile</h2>
+        <div class="form-group">
+          <label for="annualIncome">Annual Income (pre-tax) *</label>
+          <select id="annualIncome">
+            <option value="">Select Annual Income Range</option>
+            <option value="lessThan50k">Less than $50,000</option>
+            <option value="50k-99k">$50,000 - $99,999</option>
+            <option value="100k-249k">$100,000 - $249,999</option>
+            <option value="250k-499k">$250,000 - $499,999</option>
+            <option value="500k-1M">$500,000 - $1,000,000</option>
+          </select>
+          <div class="error" id="errorAnnualIncome">Select your annual income range.</div>
+        </div>
+        <div class="form-group">
+          <label for="netWorth">Net Worth *</label>
+          <select id="netWorth">
+            <option value="">Select Net Worth Range</option>
+            <option value="lessThan100k">Less than $100,000</option>
+            <option value="100k-499k">$100,000 - $499,999</option>
+            <option value="500k-1M">$500,000 - $1,000,000</option>
+          </select>
+          <div class="error" id="errorNetWorth">Select your net worth range.</div>
+        </div>
+        <div class="form-group">
+          <label for="investmentVolume">Estimated Annual Investment Volume *</label>
+          <select id="investmentVolume">
+            <option value="">Select Investment Volume Range</option>
+            <option value="lessThan50k">Less than $50,000</option>
+            <option value="50k-199k">$50,000 - $199,999</option>
+            <option value="200k-499k">$200,000 - $499,999</option>
+            <option value="500k-1M">$500,000 - $1,000,000</option>
+          </select>
+          <div class="error" id="errorInvestmentVolume">Select your estimated annual investment volume.</div>
+        </div>
+        <div class="form-group">
+          <label for="sourceOfFunds">Primary Source of Income *</label>
+          <select id="sourceOfFunds">
+            <option value="">Select Source of Income</option>
+            <option value="salary">Salary/Employment Income</option>
+            <option value="business">Business Profits</option>
+            <option value="investments">Investment Income (Dividends, Interest, Capital Gains)</option>
+            <option value="rental">Rental Income</option>
+            <option value="pension">Pension/Retirement Income</option>
+            <option value="inheritance">Inheritance</option>
+            <option value="other">Other</option>
+          </select>
+          <div class="error" id="errorSourceOfFunds">Select your primary source of income.</div>
+        </div>
+        <div class="nav-buttons">
+          <button type="button" id="back3">Back</button>
+          <button type="button" id="next3" disabled>Next</button>
+        </div>
+      </div>
+      
+      <!-- Stage 4: Trading Experience -->
+      <div id="stage4" class="form-stage">
+        <div class="personal-progress"><div class="personal-progress-bar"></div></div>
+        <h2>Trading Experience</h2>
+        <div class="form-group">
+          <label for="tradingExperience">Years of Trading Experience *</label>
+          <input type="number" id="tradingExperience" placeholder="Enter years of experience" />
+          <div class="error" id="errorTradingExperience">Enter valid years of experience.</div>
+        </div>
+        <div class="form-group">
+          <label for="preferredMarket">Preferred Market *</label>
+          <select id="preferredMarket">
+            <option value="">Select Market</option>
+            <option>Stocks</option>
+            <option>Forex</option>
+            <option>Crypto</option>
+            <option>Commodities</option>
+            <option>Options</option>
+            <option>Futures</option>
+          </select>
+          <div class="error" id="errorPreferredMarket">Select your preferred market.</div>
+        </div>
+        <div class="form-group">
+          <label for="tradingFrequency">Trading Frequency *</label>
+          <select id="tradingFrequency">
+            <option value="">Select Frequency</option>
+            <option>Daily</option>
+            <option>Weekly</option>
+            <option>Monthly</option>
+            <option>Occasionally</option>
+          </select>
+          <div class="error" id="errorTradingFrequency">Select trading frequency.</div>
+        </div>
+        <div class="form-group">
+          <label for="riskProfile">Risk Profile *</label>
+          <select id="riskProfile">
+            <option value="">Select Risk Profile</option>
+            <option>Conservative</option>
+            <option>Moderately Conservative</option>
+            <option>Balanced</option>
+            <option>Moderately Aggressive</option>
+            <option>Aggressive</option>
+          </select>
+          <div class="error" id="errorRiskProfile">Select your risk profile.</div>
+        </div>
+        <div class="form-group">
+          <label for="professionalTrader">Are you a professional trader? *</label>
+          <select id="professionalTrader">
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="errorProfessionalTrader">Please indicate if you are a professional trader.</div>
+        </div>
+        <div class="form-group">
+          <label for="tradingRisk">Trading Risk Appetite *</label>
+          <select id="tradingRisk">
+            <option value="">Select Trading Risk</option>
+            <option value="lessThan10">Less than 10%</option>
+            <option value="greaterThan10">Greater than 10%</option>
+            <option value="greaterThan50">Greater than 50%</option>
+          </select>
+          <div class="error" id="errorTradingRisk">Select your trading risk appetite.</div>
+        </div>
+        <div class="nav-buttons">
+          <button type="button" id="back4">Back</button>
+          <button type="button" id="next4" disabled>Next</button>
+        </div>
+      </div>
+      
+      <!-- Stage 5: ID Capture & Verification -->
+      <div id="stage5" class="form-stage">
+        <div class="personal-progress"><div class="personal-progress-bar"></div></div>
+        <h2>ID Capture & Verification</h2>
+        <div class="form-group">
+          <label for="idType">Select ID Type *</label>
+          <select id="idType">
+            <option value="">Select ID Type</option>
+            <option value="passport">Passport</option>
+            <option value="driversLicense">Driver's License</option>
+            <option value="nationalId">National ID</option>
+            <option value="residencePermit">Residence Permit</option>
+            <option value="other">Other</option>
+          </select>
+          <div class="error" id="errorIDType">Select the type of ID.</div>
+        </div>
+        <div class="form-group">
+          <label for="idNumber">ID Number *</label>
+          <input type="text" id="idNumber" placeholder="Enter your ID number" pattern="[0-9]+" title="Numbers only" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+          <div class="error" id="errorIDNumber">Enter your ID number.</div>
+        </div>
+        <div id="frontCaptureSection">
+          <h3>Front ID Capture</h3>
+          <button type="button" id="uploadFrontBtn">Upload Front ID</button>
+          <div id="frontCameraContainer" style="display:none;">
+            <div class="capture-container">
+              <video id="frontVideo" autoplay playsinline style="display:none;"></video>
+              <div class="overlay-box"></div>
+              <div id="frontInstruction" class="instruction">Place the FRONT side of your ID within the box.</div>
+              <canvas id="frontCanvas" style="display:none;"></canvas>
+            </div>
+          </div>
+          <img id="frontPreview" class="preview-img" src="" alt="Front ID Preview" />
+          <button type="button" id="retryFrontBtn" style="display: none;">Retry Front Capture</button>
+        </div>
+        <div id="backCaptureSection" style="display:none;">
+          <h3>Back ID Capture</h3>
+          <button type="button" id="uploadBackBtn">Upload Back ID</button>
+          <div id="backCameraContainer" style="display:none;">
+            <div class="capture-container">
+              <video id="backVideo" autoplay playsinline style="display:none;"></video>
+              <div class="overlay-box"></div>
+              <div id="backInstruction" class="instruction">Place the BACK side of your ID (should be mostly white) within the box.</div>
+              <canvas id="backCanvas" style="display:none;"></canvas>
+            </div>
+          </div>
+          <img id="backPreview" class="preview-img" src="" alt="Back ID Preview" />
+          <button type="button" id="retryBackBtn" style="display: none;">Retry Back Capture</button>
+        </div>
+        <div class="error" id="errorIDPhoto">Both front and back ID images are required.</div>
+        <div class="nav-buttons">
+          <button type="button" id="back5">Back</button>
+          <button type="button" id="next5" style="display: none;">Next</button>
+        </div>
+      </div>
+      
+      <!-- Stage 6: Live Video Verification -->
+      <div id="stage6" class="form-stage">
+        <div class="personal-progress"><div class="personal-progress-bar"></div></div>
+        <h2>Live Video Verification</h2>
+        <p>Please follow the instructions to verify you're a real person.</p>
+        <div class="live-test-circle">
+          <video id="liveVideo" autoplay playsinline></video>
+          <canvas id="overlayCanvas" class="detection-overlay"></canvas>
+          <div id="instructionTimer" style="position: absolute; top: 10px; right: 10px; color: #fff; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 4px;">10</div>
+          <div id="liveInstruction" class="instruction" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);"></div>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+          <button type="button" id="startLiveTest" class="action-button">Start Verification</button>
+          <button type="button" id="retryLiveTest" class="action-button" style="display: none;">Retry</button>
+        </div>
+        <div class="error" id="errorLive" style="text-align: center; margin-top: 10px;">Verification not completed</div>
+        <div class="nav-buttons">
+          <button type="button" id="back6">Back</button>
+          <button type="button" id="next6" disabled>Next</button>
+        </div>
+      </div>
+      
+      <!-- Stage 7: Review & Submit -->
+      <div id="stage7" class="form-stage">
+        <div class="personal-progress"><div class="personal-progress-bar"></div></div>
+        <h2>Review & Submit</h2>
+        <div id="reviewContainer">
+          <h3>Personal Details</h3>
+          <p><strong>Title:</strong> <span id="reviewTitle"></span></p>
+          <p><strong>First Name:</strong> <span id="reviewFirstName"></span></p>
+          <p><strong>Last Name:</strong> <span id="reviewLastName"></span></p>
+          <p><strong>Email:</strong> <span id="reviewEmail"></span></p>
+          <p><strong>Phone:</strong> <span id="reviewPhone"></span></p>
+          <p><strong>Date of Birth:</strong> <span id="reviewDOB"></span></p>
+          
+          <h3>Address Details</h3>
+          <p><strong>Street:</strong> <span id="reviewStreet"></span></p>
+          <p><strong>City:</strong> <span id="reviewCity"></span></p>
+          <p><strong>Country:</strong> <span id="reviewCountry"></span></p>
+          <p><strong>State/Province:</strong> <span id="reviewState"></span></p>
+          <p><strong>Postal Code:</strong> <span id="reviewPostal"></span></p>
+          
+          <h3>Financial Profile</h3>
+          <p><strong>Annual Income:</strong> <span id="reviewAnnualIncome"></span></p>
+          <p><strong>Net Worth:</strong> <span id="reviewNetWorth"></span></p>
+          <p><strong>Investment Volume:</strong> <span id="reviewInvestmentVolume"></span></p>
+          <p><strong>Source of Funds:</strong> <span id="reviewSourceOfFunds"></span></p>
+          
+          <h3>Trading Experience</h3>
+          <p><strong>Years of Experience:</strong> <span id="reviewTradingExperience"></span></p>
+          <p><strong>Preferred Market:</strong> <span id="reviewPreferredMarket"></span></p>
+          <p><strong>Trading Frequency:</strong> <span id="reviewTradingFrequency"></span></p>
+          <p><strong>Risk Profile:</strong> <span id="reviewRiskProfile"></span></p>
+          <p><strong>Professional Trader:</strong> <span id="reviewProfessionalTrader"></span></p>
+          <p><strong>Trading Risk Appetite:</strong> <span id="reviewTradingRisk"></span></p>
+        </div>
+        <div class="nav-buttons">
+          <button type="button" id="back7">Back</button>
+          <button type="button" id="submitButton">Submit Verification</button>
+        </div>
+        <div id="preloader" style="display: none; text-align: center; margin-top: 20px;">
+          <p>Submitting your information, please wait...</p>
+        </div>
+        <div id="submitSuccess" style="display: none; text-align: center; margin-top: 20px; color: #28a745;">
+          <h3>Submission Successful!</h3>
+          <p>Your KYC verification has been completed successfully.</p>
+        </div>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Validation and Utility Functions -->
+  <script>
+    // Stage 1 Validation
+    function validateStage1(showErrors = false) {
+      let valid = true;
+      let errorElem;
+      const title = document.getElementById("title").value.trim();
+      errorElem = document.getElementById("errorTitle");
+      if (!title) {
+        if (showErrors) { errorElem.innerText = "Please select a title."; errorElem.style.visibility = "visible"; }
+        valid = false;
+      } else if (showErrors) { errorElem.innerText = ""; errorElem.style.visibility = "hidden"; }
+      const firstName = document.getElementById("firstName").value.trim();
+      errorElem = document.getElementById("errorFirstName");
+      if (!/^[A-Za-z]+$/.test(firstName)) {
+        if (showErrors) { errorElem.innerText = "First name must contain alphabets only."; errorElem.style.visibility = "visible"; }
+        valid = false;
+      } else if (showErrors) { errorElem.innerText = ""; errorElem.style.visibility = "hidden"; }
+      const lastName = document.getElementById("lastName").value.trim();
+      errorElem = document.getElementById("errorLastName");
+      if (!/^[A-Za-z]+$/.test(lastName)) {
+        if (showErrors) { errorElem.innerText = "Last name must contain alphabets only."; errorElem.style.visibility = "visible"; }
+        valid = false;
+      } else if (showErrors) { errorElem.innerText = ""; errorElem.style.visibility = "hidden"; }
+      const email = document.getElementById("email").value.trim();
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      errorElem = document.getElementById("errorEmail");
+      if (!(email && emailRegex.test(email))) {
+        if (showErrors) { errorElem.innerText = "Enter a valid email."; errorElem.style.visibility = "visible"; }
+        valid = false;
+      } else if (showErrors) { errorElem.innerText = ""; errorElem.style.visibility = "hidden"; }
+      const phoneCode = document.getElementById("phoneCode").value;
+      errorElem = document.getElementById("errorPhone");
+      if (!phoneCode) {
+        if (showErrors) { errorElem.innerText = "Select country code."; errorElem.style.visibility = "visible"; }
+        valid = false;
+      }
+      const phoneNumber = document.getElementById("phoneNumber").value.trim();
+      if (!phoneNumber) {
+        if (showErrors) { errorElem.innerText = "Enter your phone number."; errorElem.style.visibility = "visible"; }
+        valid = false;
+      } else if (!/^\d+$/.test(phoneNumber)) {
+        if (showErrors) { errorElem.innerText = "Phone number must contain digits only."; errorElem.style.visibility = "visible"; }
+        valid = false;
+      } else {
+        const maxDigits = parseInt(document.querySelector("#phoneCode option:checked").getAttribute("data-max"));
+        if (phoneNumber.length !== maxDigits) {
+          if (showErrors) { errorElem.innerText = "Phone number must be exactly " + maxDigits + " digits."; errorElem.style.visibility = "visible"; }
+          valid = false;
+        } else if (phoneNumber.split('').every(digit => digit === phoneNumber[0])) {
+          if (showErrors) { errorElem.innerText = "Phone number cannot have all identical digits."; errorElem.style.visibility = "visible"; }
+          valid = false;
+        } else {
+          let sequential = true;
+          for (let i = 1; i < phoneNumber.length; i++) {
+            if (parseInt(phoneNumber[i]) !== parseInt(phoneNumber[i - 1]) + 1) {
+              sequential = false;
+              break;
+            }
+          }
+          if (sequential) {
+            if (showErrors) { errorElem.innerText = "Phone number cannot be sequential digits."; errorElem.style.visibility = "visible"; }
+            valid = false;
+          } else {
+            let validCountry = true;
+            switch (phoneCode) {
+              case "+1":
+                validCountry = /^[2-9]\d{2}[2-9]\d{6}$/.test(phoneNumber);
+                break;
+              case "+44":
+                validCountry = /^[1-9]\d{9}$/.test(phoneNumber);
+                break;
+              case "+91":
+                validCountry = /^[6-9]\d{9}$/.test(phoneNumber);
+                break;
+              case "+49":
+                validCountry = /^[1-9]\d{9}$/.test(phoneNumber);
+                break;
+              case "+33":
+                validCountry = /^[1-9]\d{8}$/.test(phoneNumber);
+                break;
+              default:
+                validCountry = true;
+            }
+            if (!validCountry) {
+              if (showErrors) { errorElem.innerText = "Phone number does not match the required format for the selected country."; errorElem.style.visibility = "visible"; }
+              valid = false;
+            } else if (showErrors) {
+              errorElem.innerText = "";
+              errorElem.style.visibility = "hidden";
+            }
+          }
+        }
+      }
+      const dob = document.getElementById("dob").value;
+      errorElem = document.getElementById("errorDob");
+      if (!dob) {
+        if (showErrors) { errorElem.innerText = "Select date of birth."; errorElem.style.visibility = "visible"; }
+        valid = false;
+      } else {
+        let today = new Date();
+        let birthDate = new Date(dob);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        let m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+        if (age < 18) {
+          if (showErrors) { errorElem.innerText = "You must be at least 18 years old."; errorElem.style.visibility = "visible"; }
+          valid = false;
+        } else if (showErrors) {
+          errorElem.innerText = "";
+          errorElem.style.visibility = "hidden";
+        }
+      }
+      return valid;
+    }
+    
+    // Stage 2 Validation
+    function validateStage2(showErrors = false) {
+      let valid = true;
+      const street = document.getElementById("street").value.trim();
+      if (showErrors) {
+        document.getElementById("errorStreet").style.visibility = street ? "hidden" : "visible";
+      }
+      valid = valid && !!street;
+      const city = document.getElementById("city").value.trim();
+      if (showErrors) {
+        document.getElementById("errorCity").style.visibility = city ? "hidden" : "visible";
+      }
+      valid = valid && !!city;
+      const country = document.getElementById("country").value;
+      if (showErrors) {
+        document.getElementById("errorCountry").style.visibility = country ? "hidden" : "visible";
+      }
+      valid = valid && !!country;
+      const stateSelect = document.getElementById("stateSelect");
+      const stateInput = document.getElementById("stateInput");
+      let stateValue = (stateSelect.style.display === "block") ? stateSelect.value : stateInput.value.trim();
+      if (showErrors) {
+        document.getElementById("errorState").style.visibility = stateValue ? "hidden" : "visible";
+      }
+      valid = valid && !!stateValue;
+      const postal = document.getElementById("postal").value.trim();
+      if (showErrors) {
+        document.getElementById("errorPostal").style.visibility = postal ? "hidden" : "visible";
+      }
+      valid = valid && !!postal;
+      return valid;
+    }
+    
+    // Stage 3 Validation
+    function validateStage3(showErrors = false) {
+      let valid = true;
+      const annualIncome = document.getElementById("annualIncome").value;
+      if (showErrors) {
+        document.getElementById("errorAnnualIncome").style.visibility = annualIncome ? "hidden" : "visible";
+      }
+      valid = valid && !!annualIncome;
+      const netWorth = document.getElementById("netWorth").value;
+      if (showErrors) {
+        document.getElementById("errorNetWorth").style.visibility = netWorth ? "hidden" : "visible";
+      }
+      valid = valid && !!netWorth;
+      const investmentVolume = document.getElementById("investmentVolume").value;
+      if (showErrors) {
+        document.getElementById("errorInvestmentVolume").style.visibility = investmentVolume ? "hidden" : "visible";
+      }
+      valid = valid && !!investmentVolume;
+      const source = document.getElementById("sourceOfFunds").value;
+      if (showErrors) {
+        document.getElementById("errorSourceOfFunds").style.visibility = source ? "hidden" : "visible";
+      }
+      valid = valid && !!source;
+      return valid;
+    }
+    
+    // Stage 4 Validation
+    function validateStage4(showErrors = false) {
+      let valid = true;
+      const exp = document.getElementById("tradingExperience").value.trim();
+      if (showErrors) {
+        document.getElementById("errorTradingExperience").style.visibility = (exp && !isNaN(exp) && Number(exp) >= 0) ? "hidden" : "visible";
+      }
+      valid = valid && (exp && !isNaN(exp) && Number(exp) >= 0);
+      const market = document.getElementById("preferredMarket").value;
+      if (showErrors) {
+        document.getElementById("errorPreferredMarket").style.visibility = market ? "hidden" : "visible";
+      }
+      valid = valid && !!market;
+      const frequency = document.getElementById("tradingFrequency").value;
+      if (showErrors) {
+        document.getElementById("errorTradingFrequency").style.visibility = frequency ? "hidden" : "visible";
+      }
+      valid = valid && !!frequency;
+      const riskProfile = document.getElementById("riskProfile").value;
+      if (showErrors) {
+        document.getElementById("errorRiskProfile").style.visibility = riskProfile ? "hidden" : "visible";
+      }
+      valid = valid && !!riskProfile;
+      const professionalTrader = document.getElementById("professionalTrader").value;
+      if (showErrors) {
+        document.getElementById("errorProfessionalTrader").style.visibility = professionalTrader ? "hidden" : "visible";
+      }
+      valid = valid && !!professionalTrader;
+      const tradingRisk = document.getElementById("tradingRisk").value;
+      if (showErrors) {
+        document.getElementById("errorTradingRisk").style.visibility = tradingRisk ? "hidden" : "visible";
+      }
+      valid = valid && !!tradingRisk;
+      return valid;
+    }
+    
+    // Stage 5 Validation – ID Upload
+    function validateIDUpload(showErrors = false) {
+      const frontPreview = document.getElementById("frontPreview");
+      const backPreview = document.getElementById("backPreview");
+      const frontCaptured = frontPreview.style.display === "block";
+      const backCaptured = backPreview.style.display === "block";
+      const errorElem = document.getElementById("errorIDPhoto");
+      if (showErrors) { errorElem.style.visibility = (frontCaptured && backCaptured) ? "hidden" : "visible"; }
+      return frontCaptured && backCaptured;
+    }
+    
+    // ID Number Verification – on blur
+    document.getElementById("idNumber").addEventListener("blur", function () {
+      const idNumber = this.value.trim();
+      const country = document.getElementById("country").value;
+      const errorElem = document.getElementById("errorIDNumber");
+      errorElem.style.visibility = "hidden";
+      if (!idNumber) {
+        errorElem.innerText = "Enter your ID number.";
+        errorElem.style.visibility = "visible";
+        return;
+      }
+      if (!/^[0-9]+$/.test(idNumber)) {
+        errorElem.innerText = "ID number must contain digits only.";
+        errorElem.style.visibility = "visible";
+        return;
+      }
+      const idNumberMaxMapping = {
+        "United States": 9,
+        "Canada": 8,
+        "Germany": 10,
+        "France": 12,
+        "United Kingdom": 8,
+        "Australia": 9,
+        "New Zealand": 8
+      };
+      const max = idNumberMaxMapping[country];
+      if (max && idNumber.length !== max) {
+        errorElem.innerText = "ID number must be exactly " + max + " digits.";
+        errorElem.style.visibility = "visible";
+        return;
+      }
+    });
+    
+    // Address Verification (Stage 2)
+    function verifyAddress() {
+      const loader = document.getElementById("loaderAddress");
+      loader.style.display = "block";
+      return new Promise((resolve) => {
+        const street = document.getElementById("street").value.trim();
+        const city = document.getElementById("city").value.trim();
+        const postal = document.getElementById("postal").value.trim();
+        const country = document.getElementById("country").value;
+        const query = `${street}, ${city}, ${postal}, ${country}`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(query)}`;
+        fetch(url, { headers: { "User-Agent": "KYCVerification/1.0" } })
+          .then(response => response.json())
+          .then(data => {
+            loader.style.display = "none";
+            if (data && data.length > 0 && data[0].address) { resolve(true); return; }
+            resolve(false);
+          })
+          .catch(error => { loader.style.display = "none"; resolve(false); });
+      });
+    }
+  </script>
+  
+  <!-- Stage 5: ID Capture Camera Functions -->
+  <script>
+    let frontTimeout, backTimeout;
+    let frontAutoCaptured = false, backAutoCaptured = false;
+    let frontSnapCount = 0, backSnapCount = 0;
+    
+    function autoCaptureFront() {
+      const frontVideo = document.getElementById("frontVideo");
+      const canvas = document.getElementById("frontCanvas");
+      const preview = document.getElementById("frontPreview");
+      const ctx = canvas.getContext("2d");
+      canvas.width = frontVideo.videoWidth;
+      canvas.height = frontVideo.videoHeight;
+      ctx.drawImage(frontVideo, 0, 0, canvas.width, canvas.height);
+      frontSnapCount++;
+      preview.src = canvas.toDataURL("image/png");
+      preview.style.display = "block";
+      if (frontVideo.srcObject) {
+        frontVideo.srcObject.getTracks().forEach(track => track.stop());
+      }
+      clearTimeout(frontTimeout);
+      document.getElementById("frontCameraContainer").style.display = "none";
+      document.getElementById("retryFrontBtn").style.display = "inline-block";
+      frontAutoCaptured = true;
+      if (frontSnapCount >= 2) {
+        if (!confirm("Is the uploaded front photo clearly visible and readable?")) {
+          frontAutoCaptured = false;
+          document.getElementById("retryFrontBtn").style.display = "none";
+        }
+      }
+      document.getElementById("backCaptureSection").style.display = "block";
+    }
+    
+    function autoCaptureBack() {
+      const backVideo = document.getElementById("backVideo");
+      const canvas = document.getElementById("backCanvas");
+      const preview = document.getElementById("backPreview");
+      const ctx = canvas.getContext("2d");
+      canvas.width = backVideo.videoWidth;
+      canvas.height = backVideo.videoHeight;
+      ctx.drawImage(backVideo, 0, 0, canvas.width, canvas.height);
+      backSnapCount++;
+      preview.src = canvas.toDataURL("image/png");
+      preview.style.display = "block";
+      if (backVideo.srcObject) {
+        backVideo.srcObject.getTracks().forEach(track => track.stop());
+      }
+      clearTimeout(backTimeout);
+      document.getElementById("backCameraContainer").style.display = "none";
+      document.getElementById("retryBackBtn").style.display = "inline-block";
+      backAutoCaptured = true;
+      if (backSnapCount >= 2) {
+        if (!confirm("Is the uploaded back photo clearly visible and readable?")) {
+          backAutoCaptured = false;
+          document.getElementById("retryBackBtn").style.display = "none";
+        }
+      }
+      if (validateIDUpload(false)) {
+        document.getElementById("next5").style.display = "inline-block";
+      }
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+      // Front ID capture
+      document.getElementById("uploadFrontBtn").addEventListener("click", function () {
+        frontAutoCaptured = false;
+        frontSnapCount = 0;
+        document.getElementById("frontPreview").style.display = "none";
+        document.getElementById("retryFrontBtn").style.display = "none";
+        document.getElementById("frontCameraContainer").style.display = "block";
+        const frontVideo = document.getElementById("frontVideo");
+        frontVideo.style.display = "block";
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => {
+              frontVideo.srcObject = stream;
+              frontVideo.play();
+              frontVideo.addEventListener("loadedmetadata", function() {
+                frontTimeout = setTimeout(autoCaptureFront, 3000);
+              });
+            })
+            .catch(err => { alert("Camera access denied: " + err); });
+        } else { alert("getUserMedia is not supported."); }
+      });
+      
+      // Retry Front Capture
+      document.getElementById("retryFrontBtn").addEventListener("click", function () {
+        document.getElementById("frontPreview").style.display = "none";
+        this.style.display = "none";
+        frontAutoCaptured = false;
+        const frontVideo = document.getElementById("frontVideo");
+        document.getElementById("frontCameraContainer").style.display = "block";
+        frontVideo.style.display = "block";
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => {
+              frontVideo.srcObject = stream;
+              frontVideo.play();
+              frontTimeout = setTimeout(autoCaptureFront, 3000);
+            })
+            .catch(err => { alert("Camera access denied: " + err); });
+        } else { alert("getUserMedia is not supported."); }
+      });
+      
+      // Back ID capture
+      document.getElementById("uploadBackBtn").addEventListener("click", function () {
+        backAutoCaptured = false;
+        backSnapCount = 0;
+        document.getElementById("backPreview").style.display = "none";
+        document.getElementById("retryBackBtn").style.display = "none";
+        document.getElementById("backCameraContainer").style.display = "block";
+        const backVideo = document.getElementById("backVideo");
+        backVideo.style.display = "block";
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => {
+              backVideo.srcObject = stream;
+              backVideo.play();
+              backVideo.addEventListener("loadedmetadata", function() {
+                backTimeout = setTimeout(autoCaptureBack, 3000);
+              });
+            })
+            .catch(err => { alert("Camera access denied: " + err); });
+        } else { alert("getUserMedia is not supported."); }
+      });
+      
+      // Retry Back Capture
+      document.getElementById("retryBackBtn").addEventListener("click", function () {
+        document.getElementById("backPreview").style.display = "none";
+        this.style.display = "none";
+        backAutoCaptured = false;
+        const backVideo = document.getElementById("backVideo");
+        document.getElementById("backCameraContainer").style.display = "block";
+        backVideo.style.display = "block";
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => {
+              backVideo.srcObject = stream;
+              backVideo.play();
+              backTimeout = setTimeout(autoCaptureBack, 3000);
+            })
+            .catch(err => { alert("Camera access denied: " + err); });
+        } else { alert("getUserMedia is not supported."); }
+      });
+    });
+  </script>
+  
+  <!-- Stage 6: Live Video Verification Script -->
+  <script>
+    let faceDetectionActive = false;
+    let detectionInterval;
+    let currentInstructionIndex = 0;
+    let countdown = 10;
+    let countdownInterval;
+    let verificationSuccess = false;
+    let livePhotoCaptured = false;
+    
+    const instructions = [
+      { text: "Please look straight at the camera", action: "neutral" },
+      { text: "Blink your eyes", action: "blink" },
+      { text: "Turn your head to the left", action: "left" },
+      { text: "Turn your head to the right", action: "right" },
+      { text: "Smile naturally", action: "smile" }
+    ];
+    
+    async function loadModels() {
+      await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+      await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+      await faceapi.nets.faceExpressionNet.loadFromUri('/models');
+    }
+    
+    async function startVerification() {
+      try {
+        // Use front camera ("user" constraint)
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        const video = document.getElementById('liveVideo');
+        video.srcObject = stream;
+        await loadModels();
+        startDetection();
+        document.getElementById('startLiveTest').style.display = 'none';
+        document.getElementById('retryLiveTest').style.display = 'none';
+        document.getElementById('errorLive').style.visibility = 'hidden';
+        faceDetectionActive = true;
+        startInstructionCycle();
+      } catch (error) {
+        console.error("Live video error:", error);
+        alert('Error accessing camera: ' + error);
+      }
+    }
+    
+    function startDetection() {
+      const video = document.getElementById('liveVideo');
+      const canvas = document.getElementById('overlayCanvas');
+      const displaySize = { width: video.clientWidth, height: video.clientHeight };
+      canvas.width = displaySize.width;
+      canvas.height = displaySize.height;
+      faceapi.matchDimensions(canvas, displaySize);
+      detectionInterval = setInterval(async () => {
+        if (!faceDetectionActive) return;
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                                        .withFaceLandmarks()
+                                        .withFaceExpressions();
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        faceapi.draw.drawDetections(canvas, resizedDetections);
+        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+        checkAction(resizedDetections);
+      }, 100);
+    }
+    
+    function startInstructionCycle() {
+      currentInstructionIndex = 0;
+      updateInstruction();
+      startCountdown();
+    }
+    
+    function updateInstruction() {
+      if (currentInstructionIndex >= instructions.length) {
+        completeVerification();
+        return;
+      }
+      document.getElementById('liveInstruction').textContent = instructions[currentInstructionIndex].text;
+    }
+    
+    function startCountdown() {
+      countdown = 10;
+      document.getElementById('instructionTimer').textContent = countdown;
+      countdownInterval = setInterval(() => {
+        countdown--;
+        document.getElementById('instructionTimer').textContent = countdown;
+        if (countdown <= 0) {
+          handleTimeout();
+        }
+      }, 1000);
+    }
+    
+    function checkAction(detections) {
+      if (!detections.length) return;
+      const currentAction = instructions[currentInstructionIndex].action;
+      const landmarks = detections[0].landmarks;
+      switch(currentAction) {
+        case 'blink':
+          if (checkBlink(landmarks)) proceedToNextStep();
+          break;
+        case 'left':
+          if (checkHeadTurn(landmarks, 'left')) proceedToNextStep();
+          break;
+        case 'right':
+          if (checkHeadTurn(landmarks, 'right')) proceedToNextStep();
+          break;
+        case 'smile':
+          if (checkSmile(detections[0].expressions)) proceedToNextStep();
+          break;
+        default:
+          if (detections.length) proceedToNextStep();
+      }
+    }
+    
+    function checkBlink(landmarks) {
+      const leftEye = landmarks.getLeftEye();
+      const rightEye = landmarks.getRightEye();
+      return eyeAspectRatio(leftEye) < 0.25 && eyeAspectRatio(rightEye) < 0.25;
+    }
+    
+    function checkHeadTurn(landmarks, direction) {
+      const nose = landmarks.getNose();
+      const faceWidth = landmarks.getJawOutline()[9].x - landmarks.getJawOutline()[0].x;
+      return direction === 'left' ? nose[6].x < (faceWidth * 0.4) : nose[6].x > (faceWidth * 0.6);
+    }
+    
+    function checkSmile(expressions) {
+      return expressions.happy > 0.9;
+    }
+    
+    function eyeAspectRatio(eyePoints) {
+      const verticalDist1 = distance(eyePoints[1], eyePoints[5]);
+      const verticalDist2 = distance(eyePoints[2], eyePoints[4]);
+      const horizontalDist = distance(eyePoints[0], eyePoints[3]);
+      return (verticalDist1 + verticalDist2) / (2 * horizontalDist);
+    }
+    
+    function distance(p1, p2) {
+      return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+    }
+    
+    function proceedToNextStep() {
+      clearInterval(countdownInterval);
+      currentInstructionIndex++;
+      if (currentInstructionIndex < instructions.length) {
+        updateInstruction();
+        startCountdown();
+      } else {
+        completeVerification();
+      }
+    }
+    
+    function handleTimeout() {
+      clearInterval(countdownInterval);
+      faceDetectionActive = false;
+      document.getElementById('errorLive').style.visibility = 'visible';
+      document.getElementById('retryLiveTest').style.display = 'inline-block';
+      stopVerification();
+    }
+    
+    function completeVerification() {
+      verificationSuccess = true;
+      livePhotoCaptured = true;
+      faceDetectionActive = false;
+      clearInterval(detectionInterval);
+      clearInterval(countdownInterval);
+      const video = document.getElementById('liveVideo');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      localStorage.setItem('verificationPhoto', canvas.toDataURL());
+      document.getElementById('next6').disabled = false;
+      document.getElementById('liveInstruction').textContent = 'Verification successful!';
+      stopVerification();
+    }
+    
+    function stopVerification() {
+      const video = document.getElementById('liveVideo');
+      if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+      }
+      video.srcObject = null;
+    }
+    
+    document.getElementById('startLiveTest').addEventListener('click', startVerification);
+    document.getElementById('retryLiveTest').addEventListener('click', () => {
+      document.getElementById('errorLive').style.visibility = 'hidden';
+      document.getElementById('retryLiveTest').style.display = 'none';
+      startVerification();
+    });
+  </script>
+  
+  <!-- Global Navigation and State Update -->
+  <script>
+    let currentStage = 1;
+    function validateStage6(showErrors = false) {
+      const errorElem = document.getElementById("errorLive");
+      if (!livePhotoCaptured) {
+         if (showErrors) { errorElem.style.visibility = "visible"; }
+         return false;
+      } else {
+         errorElem.style.visibility = "hidden";
+         return true;
+      }
+    }
+    
+    document.getElementById("next1").addEventListener("click", function () {
+      if (validateStage1(true)) { currentStage++; showStage(currentStage); }
+    });
+    document.getElementById("back2").addEventListener("click", function () { currentStage--; showStage(currentStage); });
+    document.getElementById("next2").addEventListener("click", async function () {
+      if (validateStage2(true)) {
+        const verified = await verifyAddress();
+        if (verified) { 
+          document.getElementById("errorAddressVerification").style.visibility = "hidden"; 
+          currentStage++; 
+          showStage(currentStage); 
+        } else { 
+          document.getElementById("errorAddressVerification").style.visibility = "visible"; 
+        }
+      }
+    });
+    document.getElementById("back3").addEventListener("click", function () { currentStage--; showStage(currentStage); });
+    document.getElementById("next3").addEventListener("click", function () { if (validateStage3(true)) { currentStage++; showStage(currentStage); } });
+    document.getElementById("back4").addEventListener("click", function () { currentStage--; showStage(currentStage); });
+    document.getElementById("next4").addEventListener("click", function () { if (validateStage4(true)) { currentStage++; showStage(currentStage); } });
+    document.getElementById("back5").addEventListener("click", function () { currentStage--; showStage(currentStage); });
+    document.getElementById("next5").addEventListener("click", function () { if (validateIDUpload(true)) { currentStage++; showStage(currentStage); } });
+    document.getElementById("back6").addEventListener("click", function () { currentStage--; showStage(currentStage); });
+    document.getElementById("next6").addEventListener("click", function () { if (validateStage6(true)) { currentStage++; showStage(currentStage); } });
+    document.getElementById("back7").addEventListener("click", function () { currentStage--; showStage(currentStage); });
+    
+    // Submit button – show review summary preloader and success message
+    document.getElementById("submitButton").addEventListener("click", function () {
+      // Populate review summary fields
+      document.getElementById("reviewTitle").innerText = document.getElementById("title").value;
+      document.getElementById("reviewFirstName").innerText = document.getElementById("firstName").value;
+      document.getElementById("reviewLastName").innerText = document.getElementById("lastName").value;
+      document.getElementById("reviewEmail").innerText = document.getElementById("email").value;
+      document.getElementById("reviewPhone").innerText = document.getElementById("phoneCode").value + " " + document.getElementById("phoneNumber").value;
+      document.getElementById("reviewDOB").innerText = document.getElementById("dob").value;
+      document.getElementById("reviewStreet").innerText = document.getElementById("street").value;
+      document.getElementById("reviewCity").innerText = document.getElementById("city").value;
+      document.getElementById("reviewCountry").innerText = document.getElementById("country").value;
+      let stateVal = (document.getElementById("stateSelect").style.display !== "none") ? document.getElementById("stateSelect").value : document.getElementById("stateInput").value;
+      document.getElementById("reviewState").innerText = stateVal;
+      document.getElementById("reviewPostal").innerText = document.getElementById("postal").value;
+      document.getElementById("reviewAnnualIncome").innerText = document.getElementById("annualIncome").value;
+      document.getElementById("reviewNetWorth").innerText = document.getElementById("netWorth").value;
+      document.getElementById("reviewInvestmentVolume").innerText = document.getElementById("investmentVolume").value;
+      document.getElementById("reviewSourceOfFunds").innerText = document.getElementById("sourceOfFunds").value;
+      document.getElementById("reviewTradingExperience").innerText = document.getElementById("tradingExperience").value;
+      document.getElementById("reviewPreferredMarket").innerText = document.getElementById("preferredMarket").value;
+      document.getElementById("reviewTradingFrequency").innerText = document.getElementById("tradingFrequency").value;
+      document.getElementById("reviewRiskProfile").innerText = document.getElementById("riskProfile").value;
+      document.getElementById("reviewProfessionalTrader").innerText = document.getElementById("professionalTrader").value;
+      document.getElementById("reviewTradingRisk").innerText = document.getElementById("tradingRisk").value;
+      
+      // Hide the nav-buttons and show the preloader
+      document.querySelector("#stage7 .nav-buttons").style.display = "none";
+      document.getElementById("preloader").style.display = "block";
+      
+      setTimeout(function(){
+        document.getElementById("preloader").style.display = "none";
+        document.getElementById("submitSuccess").style.display = "block";
+      }, 5000);
+    });
+    
+    setInterval(() => {
+      if (currentStage === 1) {
+        document.getElementById("next1").disabled = !validateStage1(false);
+      } else if (currentStage === 2) {
+        document.getElementById("next2").disabled = !validateStage2(false);
+      } else if (currentStage === 3) {
+        document.getElementById("next3").disabled = !validateStage3(false);
+      } else if (currentStage === 4) {
+        document.getElementById("next4").disabled = !validateStage4(false);
+      } else if (currentStage === 5) {
+        if (validateIDUpload(false)) {
+          document.getElementById("next5").style.display = "inline-block";
+        } else {
+          document.getElementById("next5").style.display = "none";
+        }
+      } else if (currentStage === 6) {
+        document.getElementById("next6").disabled = !livePhotoCaptured;
+      }
+    }, 500);
+    
+    function updateProgress() {
+      const activeStage = document.querySelector('.form-stage.active');
+      if (activeStage) {
+        const progressBar = activeStage.querySelector('.personal-progress-bar');
+        if (progressBar) {
+          progressBar.style.width = ((currentStage / 7) * 100) + "%";
+        }
+      }
+    }
+    
+    function stopLiveTestProcess() {
+      if (typeof stopVerification === 'function') {
+          stopVerification();
+      }
+    }
+    
+    function showStage(stage) {
+      document.querySelectorAll('.form-stage').forEach(s => s.classList.remove('active'));
+      const current = document.getElementById("stage" + stage);
+      current.classList.add('active');
+      updateProgress();
+      if (stage === 6) {
+        // Stage 6 live test starts on button click
+      } else {
+        stopLiveTestProcess();
+      }
+    }
+    
+    document.addEventListener("DOMContentLoaded", function () {
+      const countryElem = document.getElementById("country");
+      countryElem.addEventListener("change", updateStateField);
+      countryElem.addEventListener("input", updateStateField);
+      document.getElementById("phoneCode").addEventListener("change", function () {
+        const max = this.options[this.selectedIndex].getAttribute("data-max");
+        document.getElementById("phoneNumber").setAttribute("maxlength", max);
+      });
+      updateStateField();
+      updateProgress();
+      showStage(currentStage);
+    });
+    
+    function updateStateField() {
+      const country = document.getElementById("country").value;
+      const stateSelect = document.getElementById("stateSelect");
+      const stateInput = document.getElementById("stateInput");
+      stateSelect.innerHTML = '<option value="">Select State/Province</option>';
+      stateSelect.style.display = "none";
+      stateInput.value = "";
+      stateInput.style.display = "none";
+      const idNumberField = document.getElementById("idNumber");
+      const idNumberMaxMapping = {
+        "United States": 9,
+        "Canada": 8,
+        "Germany": 10,
+        "France": 12,
+        "United Kingdom": 8,
+        "Australia": 9,
+        "New Zealand": 8
+      };
+      if (idNumberMaxMapping[country]) {
+        idNumberField.setAttribute("maxlength", idNumberMaxMapping[country]);
+      } else {
+        idNumberField.removeAttribute("maxlength");
+      }
+      const postalInput = document.getElementById("postal");
+      const postalCodeMaxMapping = {
+        "United States": 5,
+        "Canada": 6,
+        "Germany": 5,
+        "France": 5,
+        "United Kingdom": 8,
+        "Australia": 4,
+        "New Zealand": 4,
+        "Netherlands": 6,
+        "Belgium": 4,
+        "Switzerland": 4,
+        "Austria": 4,
+        "Spain": 5,
+        "Italy": 5,
+        "Portugal": 8,
+        "Sweden": 5,
+        "Norway": 4,
+        "Denmark": 4,
+        "Finland": 5,
+        "Ireland": 7,
+        "Japan": 8,
+        "South Korea": 5
+      };
+      if (postalCodeMaxMapping[country]) {
+        postalInput.setAttribute("maxlength", postalCodeMaxMapping[country]);
+      } else {
+        postalInput.removeAttribute("maxlength");
+      }
+      const states = {
+        "United States": [
+          "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia",
+          "Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland",
+          "Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey",
+          "New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina",
+          "South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"
+        ],
+        "Canada": [
+          "Alberta","British Columbia","Manitoba","New Brunswick","Newfoundland and Labrador","Nova Scotia","Ontario","Prince Edward Island","Quebec","Saskatchewan"
+        ],
+        "United Kingdom": ["England","Scotland","Wales","Northern Ireland"],
+        "Australia": ["New South Wales","Queensland","South Australia","Tasmania","Victoria","Western Australia"],
+        "Germany": [
+          "Baden-Württemberg","Bavaria","Berlin","Brandenburg","Bremen","Hamburg","Hesse","Lower Saxony","Mecklenburg-Vorpommern",
+          "North Rhine-Westphalia","Rhineland-Palatinate","Saarland","Saxony","Saxony-Anhalt","Thuringia"
+        ],
+        "France": [
+          "Auvergne-Rhône-Alpes","Bourgogne-Franche-Comté","Brittany","Centre-Val de Loire","Corsica","Grand Est",
+          "Hauts-de-France","Île-de-France","Normandy","Nouvelle-Aquitaine","Occitanie","Pays de la Loire","Provence-Alpes-Côte d'Azur"
+        ]
+      };
+      if (states[country]) {
+        states[country].forEach(s => {
+          const opt = document.createElement("option");
+          opt.value = s;
+          opt.innerText = s;
+          stateSelect.appendChild(opt);
+        });
+        stateSelect.style.display = "block";
+      } else {
+        stateInput.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>

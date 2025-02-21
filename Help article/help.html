@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zephyrequii Help Center</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+  <style>
+    /* Global Dark Theme */
+    body {
+      background-color: #121212;
+      color: #eaeaea;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    /* Navbar */
+    .navbar {
+      background-color: #1b1b1b;
+    }
+    .navbar-brand {
+      font-weight: 600;
+      color: #00cc99 !important;
+    }
+    .nav-link {
+      color: #ffffff !important;
+    }
+    .btn-signup {
+      background-color: #00cc99;
+      color: #000;
+      font-weight: 600;
+      border: none;
+      transition: opacity 0.3s;
+    }
+    .btn-signup:hover {
+      opacity: 0.8;
+    }
+    /* Help Center Header */
+    .help-center-header {
+      padding: 2rem 1rem;
+      background-color: #1b1b1b;
+      border-bottom: 1px solid #333;
+    }
+    .help-center-header h1 {
+      margin-bottom: 1rem;
+      font-size: 1.75rem;
+    }
+    /* Search Section */
+    .search-section {
+      margin: 1rem 0;
+    }
+    .search-section input {
+      background-color: #2a2a2a;
+      color: #eaeaea;
+      border: 1px solid #333;
+    }
+    .search-section input::placeholder {
+      color: #999;
+    }
+    /* Icon Grid */
+    .icon-grid .icon-box {
+      background-color: #2a2a2a;
+      border-radius: 6px;
+      text-align: center;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: background-color 0.2s;
+      cursor: pointer;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .icon-grid .icon-box:hover {
+      background-color: #333;
+    }
+    .icon-grid .icon-box i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #00cc99;
+    }
+    /* Section Titles */
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: #00cc99;
+    }
+    /* Lists */
+    .announcement-list, .article-list {
+      background-color: #2a2a2a;
+      padding: 1rem;
+      border-radius: 6px;
+    }
+    .announcement-list li, .article-list li {
+      margin-bottom: 0.5rem;
+    }
+    .announcement-list a, .article-list a {
+      color: #00cc99;
+    }
+    /* Footer */
+    footer {
+      background-color: #1b1b1b;
+      padding: 2rem 1rem;
+      border-top: 1px solid #333;
+    }
+    .footer-links h5 {
+      color: #00cc99;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .footer-links a {
+      display: block;
+      color: #eaeaea;
+      margin-bottom: 0.5rem;
+    }
+    .footer-bottom {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #999;
+    }
+    .footer-bottom .toggle-group {
+      margin-top: 1rem;
+    }
+    .toggle-group button {
+      background-color: #2a2a2a;
+      color: #eaeaea;
+      border: none;
+      margin-right: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+    }
+    .toggle-group button:hover {
+      background-color: #333;
+    }
+    .disclaimer {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: #aaa;
+    }
+    /* Detail Page */
+    #detailPage {
+      display: none; /* Hidden by default */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #121212;
+      color: #eaeaea;
+      z-index: 1050;
+      padding: 1rem;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+    }
+    .detail-container {
+      max-width: 960px;
+      width: 100%;
+      background-color: #1b1b1b;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    .back-btn {
+      margin-bottom: 1rem;
+    }
+    #detailContent h2 {
+      color: #00cc99;
+      margin-bottom: 1rem;
+    }
+    #detailContent p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    /* Link/Button Containers */
+    .link-container {
+      margin-top: 1rem;
+    }
+    .link-container button {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: #00cc99;
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: background-color 0.3s;
+      cursor: pointer;
+    }
+    .link-container button:hover {
+      background-color: #00b38a;
+    }
+    /* Ensure main content displays by default */
+    #mainContent {
+      display: block;
+    }
+    /* Media Queries */
+    @media (max-width: 576px) {
+      .help-center-header, .detail-container {
+        padding: 1rem;
+      }
+      .icon-grid .icon-box {
+        padding: 1rem;
+        min-height: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="#">Zephyrequii</a>
+      <button class="navbar-toggler text-white" type="button" data-toggle="collapse" data-target="#navbarContent"
+        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav ml-auto align-items-center">
+          <li class="nav-item">
+            <a href="#" class="nav-link">Support</a>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-signup ml-3">Sign Up</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Help Center Header -->
+  <div class="help-center-header">
+    <div class="container">
+      <h1>Help Center</h1>
+      <div class="search-section">
+        <input type="text" class="form-control" placeholder="Search help articles" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="mainContent">
+    <main class="container py-4">
+      <!-- Self-Service Section -->
+      <h2 class="section-title">Self-Service</h2>
+      <div class="row icon-grid">
+        <!-- Self-Service items -->
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="resetPassword">
+            <i class="fas fa-key"></i>
+            <span>Reset Password</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="unlockAccount">
+            <i class="fas fa-lock-open"></i>
+            <span>Unlock Account</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="resetPhone">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Reset Phone Security Verification</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="changeEmail">
+            <i class="fas fa-envelope"></i>
+            <span>Change Email Address</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="resetGoogle">
+            <i class="fas fa-shield-alt"></i>
+            <span>Reset Google Authenticator</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="cryptoDeposit">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Crypto Deposit Not Credited</span>
+          </div>
+        </div>
+        <!-- Moved from FAQ to Self-Service -->
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="cryptoDepositWithdrawal">
+            <i class="fas fa-hand-holding-usd"></i>
+            <span>Crypto Deposit/Withdrawal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <h2 class="section-title">FAQ</h2>
+      <div class="row icon-grid">
+        <!-- Only non-crypto FAQ items -->
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="accountFunctions">
+            <i class="fas fa-user-cog"></i>
+            <span>Account Functions</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="tutorial">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <span>Tutorial</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="buyCrypto">
+            <i class="fas fa-credit-card"></i>
+            <span>Buy Crypto (Fiat/P2P)</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="spotTrading">
+            <i class="fas fa-chart-bar"></i>
+            <span>Spot &amp; Margin Trading</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="tradingBots">
+            <i class="fas fa-robot"></i>
+            <span>Trading Bots</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="payment">
+            <i class="fas fa-wallet"></i>
+            <span>Payment</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="financeFanToken">
+            <i class="fas fa-football-ball"></i>
+            <span>Finance &amp; Fan Token</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="vip">
+            <i class="fas fa-gem"></i>
+            <span>VIP Program</span>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="icon-box" data-detail="security">
+            <i class="fas fa-user-shield"></i>
+            <span>Security</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcement Section -->
+      <h2 class="section-title">Announcement</h2>
+      <ul class="announcement-list list-unstyled">
+        <li><a href="#">Latest News</a></li>
+        <li><a href="#">Delisting</a></li>
+        <li><a href="#">Wallet Maintenance Update</a></li>
+      </ul>
+
+      <!-- Latest Articles Section -->
+      <h2 class="section-title">Latest Articles</h2>
+      <ul class="article-list list-unstyled">
+        <li><strong>Binance Will Delist AMB, CLV, STMX, VITE on 2025-02-24</strong> <small>2025-02-18</small></li>
+        <li><strong>Binance Will Support the Qtum (QTUM) Network Upgrade &amp; Hard Fork</strong> <small>2025-02-13</small></li>
+        <li><strong>Binance Has Completed the Litentry (LIT) Token Swap and Rebranding</strong> <small>2025-02-08</small></li>
+        <li><strong>Notice of Removal of Spot Trading Pairs - 2025-02-06</strong> <small>2025-02-03</small></li>
+      </ul>
+
+      <!-- Top Articles Section -->
+      <h2 class="section-title">Top Articles</h2>
+      <ul class="article-list list-unstyled">
+        <li><a href="#">Daily BNB Balance Calculation Mechanism Update</a></li>
+        <li><a href="#">Why Hasn’t My Withdrawal Arrived?</a></li>
+        <li><a href="#">How to Find My User ID (BUID) on Zephyrequii.com</a></li>
+        <li><a href="#">How to Withdraw from Zephyrequii</a></li>
+        <li><a href="#">How to Complete Identity Verification</a></li>
+      </ul>
+    </main>
+  </div>
+
+  <!-- Detail Page -->
+  <div id="detailPage" role="main">
+    <div class="detail-container">
+      <button class="btn btn-secondary back-btn" id="backButton" aria-label="Go back to Help Center">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row footer-links">
+        <div class="col-6 col-sm-4 col-lg-2">
+          <h5>Company</h5>
+          <a href="#">About Us</a>
+          <a href="#">Careers</a>
+          <a href="#">Blog</a>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+          <h5>Support</h5>
+          <a href="#">Help Center</a>
+          <a href="#">Submit a Ticket</a>
+          <a href="#">API Documentation</a>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+          <h5>Legal</h5>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Use</a>
+          <a href="#">Law Enforcement Requests</a>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+          <h5>Compliance</h5>
+          <a href="#">Anti-Money Laundering</a>
+          <a href="#">KYC Policies</a>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+          <h5>Products</h5>
+          <a href="#">Exchange</a>
+          <a href="#">Academy</a>
+          <a href="#">Charity</a>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+          <h5>Community</h5>
+          <a href="#">Events</a>
+          <a href="#">Forums</a>
+          <a href="#">Social Media</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="toggle-group">
+          <button>USD</button>
+          <button>Theme: Dark</button>
+        </div>
+        <div class="disclaimer">
+          <p>
+            Trading cryptocurrencies involves significant risk and can result in the loss of your capital. You should not invest more than you can afford to lose and should ensure that you fully understand the risks involved. Before trading, please consider your level of experience, investment objectives, and seek independent financial advice if necessary.
+          </p>
+          <p>
+            This website is operated by Zephyrequii. The information on this site is not directed at residents in any country or jurisdiction where such distribution or use would be contrary to local law or regulation.
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript: Bootstrap and Custom Script -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    // Updated detail content for all FAQ and Self-Service pages with long, advanced write-ups.
+    const detailPages = {
+      resetPassword: `
+        <h2>Reset Password</h2>
+        <p>
+          Maintaining a secure password is essential for safeguarding your personal and financial information. If you have forgotten your password or suspect that your account security has been compromised, please follow these detailed steps:
+        </p>
+        <ul>
+          <li>Log in to your account and navigate to "Account Settings."</li>
+          <li>Select the "Change/Reset Password" option.</li>
+          <li>Enter your current password (if required), then choose a new password that meets our rigorous security guidelines—using a combination of uppercase and lowercase letters, numbers, and special characters.</li>
+          <li>Confirm your new password by re-entering it, and click "Save" to update your credentials.</li>
+        </ul>
+        <div class="link-container">
+          <button onclick="alert('Additional password security tips: Utilize a password manager for generating and securely storing complex passwords, and update your password on a regular schedule for enhanced protection.');">Learn More About Password Security</button>
+        </div>
+      `,
+      unlockAccount: `
+        <h2>Unlock Account</h2>
+        <p>
+          If your account has been locked due to repeated unsuccessful login attempts or suspicious activity, it is crucial to restore secure access promptly. Please follow these steps meticulously:
+        </p>
+        <ul>
+          <li>Verify your identity using the authentication methods provided in your account settings.</li>
+          <li>Complete any required two-factor authentication procedures.</li>
+          <li>If necessary, reset your password and allow the system a few moments to process the unlock request.</li>
+          <li>If your account remains inaccessible, compile your account details and refer to our detailed guide for further assistance.</li>
+        </ul>
+        <div class="link-container">
+          <button onclick="alert('For further assistance with unlocking your account, please consult our comprehensive guide available in our support resources.');">Learn More About Unlocking Your Account</button>
+        </div>
+      `,
+      resetPhone: `
+        <h2>Reset Phone Security Verification</h2>
+        <p>
+          Your mobile device is a critical component in protecting your account. To update or reset your phone security verification, please adhere to the following comprehensive instructions:
+        </p>
+        <ul>
+          <li>Log in to your account and navigate to the "Security Settings" section.</li>
+          <li>Remove your old phone number or update it with a new, verified number.</li>
+          <li>Follow the on-screen prompts to receive a one-time passcode on your new device.</li>
+          <li>Enter the passcode accurately to complete the verification update.</li>
+        </ul>
+        <div class="link-container">
+          <button onclick="alert('For a more detailed walkthrough on updating your phone verification settings, please review our extended support documentation.');">Learn More About Phone Verification</button>
+        </div>
+      `,
+      changeEmail: `
+        <h2>Change Email Address</h2>
+        <p>
+          Keeping your email address current is vital for receiving important notifications and ensuring smooth account recovery. Please follow these steps:
+        </p>
+        <ul>
+          <li>Access "Profile Settings" and select the "Update Email Address" option.</li>
+          <li>Enter your new email address accurately and submit the form to initiate the verification process.</li>
+          <li>Check your inbox for a verification email and click the provided link to confirm the update.</li>
+        </ul>
+        <div class="link-container">
+          <button onclick="alert('Ensure that your new email is secure and accessible. For further guidance, please consult our comprehensive email update guidelines.');">Learn More About Email Updates</button>
+        </div>
+      `,
+      resetGoogle: `
+        <h2>Reset Google Authenticator</h2>
+        <p>
+          Google Authenticator is a critical element of our two-factor authentication system, providing an additional layer of security for your account. If you need to reset your Google Authenticator, please follow these steps:
+        </p>
+        <ul>
+          <li>Log in to your account and navigate to the "Two-Factor Authentication" section.</li>
+          <li>Select the option to reset or disable your current Google Authenticator configuration.</li>
+          <li>Scan the new QR code displayed on your screen using the Google Authenticator app on your mobile device.</li>
+          <li>Enter the generated code to confirm and complete the reset process.</li>
+        </ul>
+        <div class="link-container">
+          <button onclick="alert('For a detailed video tutorial on resetting Google Authenticator, please refer to our advanced support resources.');">Learn More About Google Authenticator</button>
+        </div>
+      `,
+      cryptoDeposit: `
+        <h2>Crypto Deposit Not Credited</h2>
+        <p>
+          If your cryptocurrency deposit has not been credited to your account, please review the following advanced troubleshooting steps:
+        </p>
+        <ul>
+          <li>Use a blockchain explorer to check the status of your deposit transaction by entering your transaction ID.</li>
+          <li>Ensure that the deposit address used exactly matches the one provided in your account dashboard.</li>
+          <li>If applicable, verify that any required memo, tag, or destination identifier is correctly included.</li>
+          <li>Allow sufficient time for the transaction to receive the necessary network confirmations, especially during periods of high congestion.</li>
+          <li>If the deposit is still not reflected in your account, compile your transaction details and review our support documentation for further troubleshooting.</li>
+        </ul>
+        <div class="link-container">
+          <button onclick="alert('For advanced troubleshooting of crypto deposits, please review our comprehensive guide that outlines common issues and their solutions.');">Learn More About Deposits</button>
+        </div>
+      `,
+      cryptoDepositWithdrawal: `
+        <h2>Crypto Deposit/Withdrawal Issues</h2>
+        <p>
+          If you are encountering issues with cryptocurrency deposits or withdrawals, it is essential to follow a systematic troubleshooting process. The guidelines below are designed to help you resolve common problems:
+        </p>
+        <ul>
+          <li><strong>Deposits:</strong> Verify that your deposit transaction has been successfully broadcast by checking it on a blockchain explorer. Ensure that the deposit address and any required memo/tag are correctly used, and allow ample time for network confirmations.</li>
+          <li><strong>Withdrawals:</strong> Confirm that the withdrawal address is entered accurately and that your account meets all necessary requirements, including completed KYC verification and sufficient balance. Be aware that network delays or scheduled maintenance can affect processing times.</li>
+          <li>If issues persist after these checks, document your transaction details and consult our advanced troubleshooting resources.</li>
+        </ul>
+        <div class="link-container">
+          <button onclick="loadCryptoDepositWithdrawalDetails()">Learn More About Deposit/Withdrawal Issues</button>
+        </div>
+      `,
+      cryptoDepositWithdrawalDetails: `
+        <h2>Detailed Crypto Deposit/Withdrawal Information</h2>
+        <p>
+          This comprehensive guide is intended to help you resolve common challenges associated with cryptocurrency deposits and withdrawals. For deposits, it is critical to verify that your transaction has been successfully broadcast to the blockchain. Make sure that the deposit address provided by our platform is used exactly as shown, and confirm that any required memo, tag, or destination identifier is included accurately. Note that during periods of high network congestion, confirmation times may be extended.
+        </p>
+        <p>
+          For withdrawals, accuracy is paramount. Double-check your withdrawal address for any errors, and ensure that your account satisfies all prerequisites, including completed KYC verification and sufficient available balance. Additionally, network congestion or scheduled maintenance can occasionally result in processing delays.
+        </p>
+        <p>
+          By following these detailed troubleshooting steps, you should be able to identify and resolve most issues independently. We recommend reviewing each step carefully to ensure that all aspects of your transaction are correct.
+        </p>
+      `,
+      /* FAQ Detail Pages – Expanded Professional Content */
+      accountFunctions: `
+        <h2>Account Functions</h2>
+        <p>
+          Our platform offers a robust suite of account management tools designed to give you complete control over your trading experience. You can update your personal information, configure your security settings, review your transaction history, and access real-time market data—all from an intuitive and secure dashboard.
+        </p>
+        <p>
+          These tools are developed with both security and usability in mind, ensuring that whether you are a beginner or a seasoned trader, you can manage your account efficiently while keeping your sensitive data fully protected.
+        </p>
+      `,
+      tutorial: `
+        <h2>Tutorial</h2>
+        <p>
+          The tutorial section is your comprehensive resource for mastering our platform. Our extensive tutorials cover every aspect of the trading process, from the initial steps of setting up your account to executing advanced trading strategies.
+        </p>
+        <p>
+          Each tutorial is meticulously crafted with step-by-step instructions, detailed screenshots, and video demonstrations to ensure clarity and ease of learning. Our expert team continuously updates the tutorials to reflect the latest market trends and platform enhancements, so you always have access to current and accurate information.
+        </p>
+      `,
+      buyCrypto: `
+        <h2>Buy Crypto (Fiat/P2P)</h2>
+        <p>
+          Purchasing cryptocurrency on our platform is designed to be straightforward and secure. Our guide explains the complete process of buying crypto using fiat currencies or through peer-to-peer (P2P) trading.
+        </p>
+        <p>
+          You will find detailed instructions on selecting your preferred payment method, entering your purchase amount, and confirming your transaction. We also provide valuable tips on safeguarding your funds and ensuring that your purchase is processed smoothly.
+        </p>
+      `,
+      spotTrading: `
+        <h2>Spot &amp; Margin Trading</h2>
+        <p>
+          Our spot and margin trading services are built to accommodate traders at all levels. Whether you are engaging in immediate, real-time trading (spot trading) or using margin to leverage your positions, our platform provides you with the tools and insights necessary for a successful trading experience.
+        </p>
+        <p>
+          Our detailed guides cover the fundamentals of trading, including order types, risk management, and technical analysis, as well as advanced strategies for margin trading. With real-time data feeds and integrated risk controls, you can make well-informed decisions in a dynamic market environment.
+        </p>
+      `,
+      tradingBots: `
+        <h2>Trading Bots</h2>
+        <p>
+          Automated trading through trading bots can significantly enhance your trading efficiency by executing orders with exceptional speed and accuracy. Our platform supports a range of trading bot solutions that are designed to optimize your trading strategy around the clock.
+        </p>
+        <p>
+          Our extensive guide walks you through the process of setting up your trading bot, configuring its parameters, and monitoring its performance. You will also learn about various algorithmic strategies and risk management techniques that can help you tailor the bot to your specific trading style.
+        </p>
+      `,
+      payment: `
+        <h2>Payment</h2>
+        <p>
+          Managing your funds securely is a cornerstone of successful trading. Our payment system supports multiple methods for deposits and withdrawals, ensuring that your transactions are processed safely and efficiently.
+        </p>
+        <p>
+          In this guide, you will find step-by-step instructions on linking your bank account, setting up digital wallets, and resolving common payment issues. We also emphasize best practices for protecting your funds during every transaction, so you can trade with confidence.
+        </p>
+      `,
+      financeFanToken: `
+        <h2>Finance &amp; Fan Token</h2>
+        <p>
+          Our Finance &amp; Fan Token offerings provide innovative opportunities for both new and experienced investors. These tokens offer unique financial benefits along with exclusive access to promotions and events.
+        </p>
+        <p>
+          In this detailed guide, we explain the features of our tokens, the benefits they bring to your investment strategy, and how you can incorporate them into your portfolio. Our aim is to provide you with a clear understanding of these tokens and how they can enhance your overall trading experience.
+        </p>
+      `,
+      vip: `
+        <h2>VIP Program</h2>
+        <p>
+          Our VIP Program is designed for traders of all levels—from those just starting out to seasoned market veterans. Instead of focusing solely on high-volume transactions, our VIP services are tailored to provide personalized support, exclusive educational content, and advanced market insights that benefit every trader.
+        </p>
+        <p>
+          As a VIP member, you gain access to priority customer support, in-depth market analysis, and customized trading tools that are designed to enhance your decision-making process. Our program is committed to empowering you with the knowledge and resources needed to navigate the markets successfully.
+        </p>
+      `,
+      security: `
+        <h2>Security</h2>
+        <p>
+          The security of your account is our highest priority. Our platform utilizes a comprehensive, multi-layered security framework that includes advanced encryption, robust two-factor authentication, and continuous monitoring to protect your personal data and funds.
+        </p>
+        <p>
+          This detailed security guide explains each of our protective measures—from secure login protocols and regular system audits to real-time threat detection—and offers best practice recommendations for further securing your account. We are dedicated to providing a safe and secure trading environment for all our users.
+        </p>
+      `
+    };
+
+    // Function to load additional crypto deposit/withdrawal details.
+    function loadCryptoDepositWithdrawalDetails() {
+      document.getElementById('detailContent').innerHTML = detailPages["cryptoDepositWithdrawalDetails"];
+    }
+
+    // When an icon box is clicked, load its corresponding detail content.
+    const iconBoxes = document.querySelectorAll('.icon-box[data-detail]');
+    iconBoxes.forEach(box => {
+      box.addEventListener('click', function() {
+        const detailKey = this.getAttribute('data-detail');
+        if (detailPages[detailKey]) {
+          document.getElementById('detailContent').innerHTML = detailPages[detailKey];
+          document.getElementById('mainContent').style.display = 'none';
+          document.getElementById('detailPage').style.display = 'flex';
+        }
+      });
+    });
+
+    // Back button returns to the main Help Center view.
+    document.getElementById('backButton').addEventListener('click', function() {
+      document.getElementById('detailPage').style.display = 'none';
+      document.getElementById('detailContent').innerHTML = '';
+      document.getElementById('mainContent').style.display = 'block';
+    });
+  </script>
+</body>
+</html>

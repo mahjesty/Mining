@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Account &amp; Security</title>
-  <!-- Include jsOTP for TOTP generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsotp/1.3.1/jsotp.min.js"></script>
+  <!-- Removed external backend library for TOTP -->
   <style>
     /* ---------- Base Reset & Typography ---------- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,12 +35,8 @@
       --btn-hover: linear-gradient(145deg, #bbb, #aaa);
     }
     /* ---------- Helper Classes for Verification ---------- */
-    .verified {
-      color: green;
-    }
-    .not-verified {
-      color: red;
-    }
+    .verified { color: green; }
+    .not-verified { color: red; }
     /* ---------- Container & Page Layout ---------- */
     .container {
       width: 90%;
@@ -49,6 +44,7 @@
       margin: 20px auto;
       padding: 0 16px;
     }
+    /* Only one page is visible at a time */
     .page { display: none; }
     .title-bar {
       position: relative;
@@ -62,6 +58,7 @@
       font-weight: 600;
       color: var(--text-color);
     }
+    /* Back button style */
     .back-button {
       position: absolute;
       left: 16px;
@@ -227,6 +224,12 @@
       font-size: 1.2rem;
       padding: 15px;
     }
+    /* ---------- Custom Rule for Edit Phone Number ---------- */
+    #pageEditPhone .section input {
+      font-size: 1.2rem;
+      padding: 14px;
+      width: 100%;
+    }
     /* ---------- Modal Styles ---------- */
     .modal {
       display: none;
@@ -287,6 +290,7 @@
       .btn, .input-group input { font-size: 0.9rem; }
       #devicesList { flex-direction: column; }
       .device-item { flex: 1 1 100%; }
+      #pageEditPhone .section input { font-size: 1.1rem; padding: 12px; }
     }
     /* ---------- Preferences Page Custom Styling ---------- */
     #pagePreferences .section .label {
@@ -346,7 +350,9 @@
     <div class="container">
       <div class="title-bar">
         <div class="back-button" onclick="showAccountInfoPage()">
-          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+          </svg>
         </div>
         <h1>Account &amp; Security</h1>
       </div>
@@ -366,6 +372,12 @@
         </div>
         <div class="menu-item" onclick="showVipPage()">
           <span>VIP Privilege</span>
+        </div>
+        <div class="menu-item" onclick="showPreferencesPage()">
+          <span>Preferences</span>
+        </div>
+        <div class="menu-item" onclick="showThemePage()">
+          <span>Theme Settings</span>
         </div>
         <div class="menu-item" onclick="showContactPage()">
           <span>Contact</span>
@@ -388,7 +400,6 @@
       </div>
       <div class="profile-container">
         <div class="profile-avatar-large">
-          <!-- Default animated profile photo -->
           <img src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif" alt="User Animated Avatar">
         </div>
         <div class="profile-details-advanced">
@@ -416,7 +427,6 @@
             <div class="detail-label">Account Status:</div>
             <div class="detail-value" id="profileStatus">Active</div>
           </div>
-          <!-- Additional Professional Details with conditional text colors -->
           <div class="detail-card">
             <div class="detail-label">KYC Verification:</div>
             <div class="detail-value" id="profileKYC">Verified</div>
@@ -433,6 +443,41 @@
             <div class="detail-label">2FA Enabled:</div>
             <div class="detail-value" id="profile2FA">Enabled</div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Security Hub Page -->
+  <div id="pageSecurity" class="page">
+    <div class="container">
+      <div class="title-bar">
+        <!-- Back from Security Hub goes to Account Info -->
+        <div class="back-button" onclick="showAccountInfoPage()">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+          </svg>
+        </div>
+        <h1>Security Settings</h1>
+      </div>
+      <div class="menu-list">
+        <div class="menu-item" onclick="showAuthenticationPage()">
+          <span>2FA Setup</span>
+        </div>
+        <div class="menu-item" onclick="showResetPasswordPage()">
+          <span>Reset Password</span>
+        </div>
+        <div class="menu-item" onclick="showPayPinPage()">
+          <span>Pay PIN</span>
+        </div>
+        <div class="menu-item" onclick="showEditPhonePage()">
+          <span>Edit Phone Number</span>
+        </div>
+        <div class="menu-item" onclick="showAccountActivitiesPage()">
+          <span>Account Activities</span>
+        </div>
+        <div class="menu-item" onclick="showDevicesPage()">
+          <span>Devices</span>
         </div>
       </div>
     </div>
@@ -505,17 +550,18 @@
         <p style="font-size:1.1rem; margin-bottom:20px;">
           We're here to help! Choose one of the options below:
         </p>
-        <button class="btn help-btn" onclick="window.location.href='mailto:support@example.com'">Email Support</button>
-        <button class="btn help-btn" onclick="window.open('https://livechat.example.com','_blank')">Live Chat</button>
-        <button class="btn help-btn" onclick="window.location.href='help-articles.html'">Help Articles</button>
+        <button class="btn" onclick="window.location.href='mailto:support@example.com'">Email Support</button>
+        <button class="btn" onclick="window.open('https://livechat.example.com','_blank')">Live Chat</button>
+        <button class="btn" onclick="window.location.href='help-articles.html'">Help Articles</button>
       </div>
     </div>
   </div>
   
-  <!-- 2FA Setup Page -->
+  <!-- 2FA Setup Page (Security Sub-Page) -->
   <div id="pageAuthentication" class="page">
     <div class="container">
       <div class="title-bar">
+        <!-- Back from 2FA Setup goes to Security Hub -->
         <div class="back-button" onclick="showSecurityPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
@@ -527,7 +573,7 @@
         <div class="row">
           <div class="label">QR Code:</div>
           <div class="value">
-            <img id="authQR" style="width:200px; height:200px; display:block; margin:0 auto;">
+            <img id="authQR" style="width:200px; height:200px; display:block; margin:0 auto;" alt="QR Code">
           </div>
         </div>
         <div class="row">
@@ -541,10 +587,11 @@
     </div>
   </div>
   
-  <!-- TOTP Verification Page -->
+  <!-- TOTP Verification Page (Security Sub-Page) -->
   <div id="pageTOTPVerification" class="page">
     <div class="container">
       <div class="title-bar">
+        <!-- Back from TOTP Verification goes to 2FA Setup -->
         <div class="back-button" onclick="showAuthenticationPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
@@ -568,10 +615,11 @@
     </div>
   </div>
   
-  <!-- Reset Password Page -->
+  <!-- Reset Password Page (Security Sub-Page) -->
   <div id="pageResetPassword" class="page">
     <div class="container">
       <div class="title-bar">
+        <!-- Back from Reset Password goes to Security Hub -->
         <div class="back-button" onclick="showSecurityPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
@@ -586,15 +634,16 @@
             <input type="email" id="recoveryEmail" placeholder="your-email@example.com">
           </div>
         </div>
-        <button class="btn" onclick="sendRecoveryEmail()">Send Reset Link</button>
+        <button class="btn">Send Reset Link</button>
       </div>
     </div>
   </div>
   
-  <!-- Pay PIN Page -->
+  <!-- Pay PIN Page (Security Sub-Page) -->
   <div id="pagePayPin" class="page">
     <div class="container">
       <div class="title-bar">
+        <!-- Back from Pay PIN goes to Security Hub -->
         <div class="back-button" onclick="showSecurityPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
@@ -615,10 +664,11 @@
     </div>
   </div>
   
-  <!-- Edit Phone Number Page -->
+  <!-- Edit Phone Number Page (Security Sub-Page) -->
   <div id="pageEditPhone" class="page">
     <div class="container">
       <div class="title-bar">
+        <!-- Back from Edit Phone goes to Security Hub -->
         <div class="back-button" onclick="showSecurityPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
@@ -633,15 +683,16 @@
             <input type="text" id="editPhone" placeholder="Enter your phone number">
           </div>
         </div>
-        <button class="btn" onclick="savePhone()">Save Phone Number</button>
+        <button class="btn">Save Phone Number</button>
       </div>
     </div>
   </div>
   
-  <!-- Account Activities Page -->
+  <!-- Account Activities Page (Security Sub-Page) -->
   <div id="pageAccountActivities" class="page">
     <div class="container">
       <div class="title-bar">
+        <!-- Back from Activities goes to Security Hub -->
         <div class="back-button" onclick="showSecurityPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
@@ -650,15 +701,30 @@
         <h1>Account Activities</h1>
       </div>
       <div class="section" id="activitiesList">
-        <!-- Activity items will be populated here -->
+        <div class="activity-item">
+          <strong>2023-05-01 10:30</strong><br><span>Logged in</span>
+        </div>
+        <div class="activity-item">
+          <strong>2023-05-01 10:35</strong><br><span>Changed password</span>
+        </div>
+        <div class="activity-item">
+          <strong>2023-05-01 11:00</strong><br><span>Transferred funds</span>
+        </div>
+        <div class="activity-item">
+          <strong>2023-05-02 09:20</strong><br><span>Viewed account activity</span>
+        </div>
+        <div class="activity-item">
+          <strong>2023-05-03 14:10</strong><br><span>Logged out</span>
+        </div>
       </div>
     </div>
   </div>
   
-  <!-- Devices Page -->
+  <!-- Devices Page (Security Sub-Page) -->
   <div id="pageDevices" class="page">
     <div class="container">
       <div class="title-bar">
+        <!-- Back from Devices goes to Security Hub -->
         <div class="back-button" onclick="showSecurityPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
@@ -667,16 +733,31 @@
         <h1>Devices</h1>
       </div>
       <div class="section" id="devicesList">
-        <!-- Device details will be populated here -->
+        <div class="device-item">
+          <strong>iPhone 12</strong> (Mobile)<br>
+          <span>Last Used: 2023-06-01 14:30</span><br>
+          <span>Location: New York, USA</span>
+        </div>
+        <div class="device-item">
+          <strong>MacBook Pro</strong> (Laptop)<br>
+          <span>Last Used: 2023-06-01 10:15</span><br>
+          <span>Location: San Francisco, USA</span>
+        </div>
+        <div class="device-item">
+          <strong>iPad Air</strong> (Tablet)<br>
+          <span>Last Used: 2023-06-01 12:45</span><br>
+          <span>Location: Chicago, USA</span>
+        </div>
       </div>
     </div>
   </div>
   
-  <!-- Theme Selection Page -->
+  <!-- Theme Selection Page (Theme functionality preserved) -->
   <div id="pageTheme" class="page">
     <div class="container">
       <div class="title-bar">
-        <div class="back-button" onclick="showSecurityPage()">
+        <!-- Back from Theme Settings goes to Account Info -->
+        <div class="back-button" onclick="showAccountInfoPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
           </svg>
@@ -704,7 +785,8 @@
   <div id="pagePreferences" class="page">
     <div class="container">
       <div class="title-bar">
-        <div class="back-button" onclick="showSecurityPage()">
+        <!-- Back from Preferences goes to Account Info -->
+        <div class="back-button" onclick="showAccountInfoPage()">
           <svg viewBox="0 0 24 24">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
           </svg>
@@ -726,6 +808,16 @@
               <option value="CHF">CHF - Swiss Franc</option>
               <option value="CNY">CNY - Chinese Yuan</option>
               <option value="SEK">SEK - Swedish Krona</option>
+              <option value="NZD">NZD - New Zealand Dollar</option>
+              <option value="MXN">MXN - Mexican Peso</option>
+              <option value="BRL">BRL - Brazilian Real</option>
+              <option value="SGD">SGD - Singapore Dollar</option>
+              <option value="HKD">HKD - Hong Kong Dollar</option>
+              <option value="NOK">NOK - Norwegian Krone</option>
+              <option value="DKK">DKK - Danish Krone</option>
+              <option value="PLN">PLN - Polish Zloty</option>
+              <option value="RUB">RUB - Russian Ruble</option>
+              <option value="ZAR">ZAR - South African Rand</option>
             </select>
           </div>
         </div>
@@ -734,21 +826,29 @@
           <div class="value">
             <select id="languageSelect">
               <option value="en">English</option>
+              <option value="zh_CN">Mandarin Chinese</option>
+              <option value="hi">Hindi</option>
               <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-              <option value="it">Italian</option>
+              <option value="ar">Arabic</option>
+              <option value="bn">Bengali</option>
               <option value="pt">Portuguese</option>
               <option value="ru">Russian</option>
               <option value="ja">Japanese</option>
+              <option value="de">German</option>
               <option value="ko">Korean</option>
-              <option value="zh_CN">Chinese (Simplified)</option>
-              <option value="zh_TW">Chinese (Traditional)</option>
-              <option value="ar">Arabic</option>
+              <option value="fr">French</option>
+              <option value="tr">Turkish</option>
+              <option value="vi">Vietnamese</option>
+              <option value="ur">Urdu</option>
+              <option value="pa">Punjabi</option>
+              <option value="ms">Malay</option>
+              <option value="fa">Persian (Farsi)</option>
+              <option value="sw">Swahili</option>
+              <option value="th">Thai</option>
             </select>
           </div>
         </div>
-        <button class="btn" onclick="savePreferences()">Save Preferences</button>
+        <button class="btn">Save Preferences</button>
       </div>
     </div>
   </div>
@@ -756,7 +856,7 @@
   <!-- Modal for Messages -->
   <div id="messageModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="hideMessage()">&times;</span>
+      <span class="close" onclick="document.getElementById('messageModal').style.display='none'">&times;</span>
       <p id="messageText"></p>
     </div>
   </div>
@@ -784,35 +884,29 @@
       
       function populateProfilePage() {
         document.getElementById("profileNameDetail").innerText = userData.name;
-        document.getElementById("profileUIDDetail").innerText = userData.uid;
         document.getElementById("profileEmailDetail").innerText = userData.email;
         document.getElementById("profilePhone").innerText = userData.phone;
         document.getElementById("profileMemberSince").innerText = userData.memberSince;
         document.getElementById("profileStatus").innerText = userData.status;
         
-        // Set verification details with conditional text colors using classes
-        const emailVerText = userData.emailVerified ? "Verified" : "Not Verified";
-        const phoneVerText = userData.phoneVerified ? "Verified" : "Not Verified";
-        
+        // Set verification details with conditional text colors
         const emailEl = document.getElementById("profileEmailVerified");
-        emailEl.innerText = emailVerText;
+        emailEl.innerText = userData.emailVerified ? "Verified" : "Not Verified";
         emailEl.classList.remove("verified", "not-verified");
         emailEl.classList.add(userData.emailVerified ? "verified" : "not-verified");
         
         const phoneEl = document.getElementById("profilePhoneVerified");
-        phoneEl.innerText = phoneVerText;
+        phoneEl.innerText = userData.phoneVerified ? "Verified" : "Not Verified";
         phoneEl.classList.remove("verified", "not-verified");
         phoneEl.classList.add(userData.phoneVerified ? "verified" : "not-verified");
         
-        const kycText = userData.kycVerified ? "Verified" : "Not Verified";
         const kycEl = document.getElementById("profileKYC");
-        kycEl.innerText = kycText;
+        kycEl.innerText = userData.kycVerified ? "Verified" : "Not Verified";
         kycEl.classList.remove("verified", "not-verified");
         kycEl.classList.add(userData.kycVerified ? "verified" : "not-verified");
         
-        const twoFAText = userData.twoFAEnabled ? "Enabled" : "Disabled";
         const twoFAEl = document.getElementById("profile2FA");
-        twoFAEl.innerText = twoFAText;
+        twoFAEl.innerText = userData.twoFAEnabled ? "Enabled" : "Disabled";
         twoFAEl.classList.remove("verified", "not-verified");
         twoFAEl.classList.add(userData.twoFAEnabled ? "verified" : "not-verified");
       }
@@ -872,21 +966,21 @@
       window.showPayPinPage = function() { showPage("pagePayPin"); }
       window.showAccountActivitiesPage = function() { showPage("pageAccountActivities"); populateAccountActivities(); }
       window.showDevicesPage = function() { showPage("pageDevices"); populateDevices(); }
-      window.showDeviceLockPage = function() { showPage("pageDeviceLock"); }
-      window.showAuthenticationPage = function() { showPage("pageAuthentication"); loadAuthKey(); }
+      window.showAuthenticationPage = function() { showPage("pageAuthentication"); }
       window.showThemePage = function() { showPage("pageTheme"); }
       window.showPreferencesPage = function() { showPage("pagePreferences"); }
       window.showVipPage = function() { showPage("pageVip"); }
       window.showContactPage = function() { showPage("pageContact"); }
+      window.showEditPhonePage = function() { showPage("pageEditPhone"); }
       
-      /* ---------- Theme Functions ---------- */
+      /* ---------- Theme Functions (Preserved & Enhanced for Device Mode) ---------- */
       let deviceThemeListenerAdded = false;
       window.saveTheme = function() {
         const selected = document.querySelector('input[name="theme"]:checked');
         if (selected) {
           localStorage.setItem("theme", selected.value);
           applyTheme();
-          showSecurityPage();
+          showAccountInfoPage();
         } else {
           alert("Please select a theme.");
         }
@@ -895,14 +989,20 @@
         const theme = localStorage.getItem("theme") || "dark";
         document.body.classList.remove("light-theme", "dark-theme");
         if (theme === "device") {
+          // Check the device's preferred color scheme and apply the appropriate theme
           if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
             document.body.classList.add("dark-theme");
           } else {
             document.body.classList.add("light-theme");
           }
+          // Listen for changes in the device's color scheme
           if (!deviceThemeListenerAdded && window.matchMedia) {
             const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-            darkQuery.addEventListener("change", e => { if (localStorage.getItem("theme") === "device") { applyTheme(); } });
+            darkQuery.addEventListener("change", () => {
+              if (localStorage.getItem("theme") === "device") {
+                applyTheme();
+              }
+            });
             deviceThemeListenerAdded = true;
           }
         } else if (theme === "dark") {
@@ -913,202 +1013,32 @@
       }
       applyTheme();
       
-      /* ---------- 2FA Setup Functions (TOTP Verification) ---------- */
-      function generateTOTPSecret() {
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-        let secret = "";
-        for (let i = 0; i < 16; i++) {
-          secret += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-        }
-        return secret;
-      }
-      function getAuthKey() {
-        if (localStorage.getItem("totpSecret")) {
-          return localStorage.getItem("totpSecret");
-        } else {
-          const key = generateTOTPSecret();
-          localStorage.setItem("totpSecret", key);
-          return key;
-        }
-      }
-      function loadAuthKey() {
-        const key = getAuthKey();
-        document.getElementById("authKey").value = key;
-        const otpauth = `otpauth://totp/MyApp:${encodeURIComponent(userData.email)}?secret=${key}&issuer=MyApp`;
-        const qrURL = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(otpauth)}`;
-        document.getElementById("authQR").src = qrURL;
-      }
+      /* ---------- Removed/Stubbed Security Functions ---------- */
       window.copyAuthKey = function() {
-        const keyField = document.getElementById("authKey");
-        keyField.select();
-        keyField.setSelectionRange(0, 99999);
-        document.execCommand("copy");
-        alert("Authentication key copied to clipboard!");
-        setTimeout(() => { showPage("pageTOTPVerification"); }, 500);
+        alert("TOTP functionality has been removed.");
       }
       window.verifyTOTPCode = function() {
-        const userCode = document.getElementById("totpCodeInput").value.trim();
-        if (userCode === "") { alert("Please enter the verification code."); return; }
-        const secret = getAuthKey();
-        const totp = new jsOTP.totp();
-        const currentTime = Math.floor(Date.now() / 1000);
-        const timeStep = 30;
-        const validCodes = [
-          totp.getOtp(secret, currentTime - timeStep),
-          totp.getOtp(secret, currentTime),
-          totp.getOtp(secret, currentTime + timeStep)
-        ];
-        if (validCodes.includes(userCode)) {
-          alert("2FA verification successful!");
-          setTimeout(() => { showSecurityPage(); }, 3000);
-        } else {
-          alert("Incorrect code. Please try again.");
-        }
+        alert("2FA verification functionality has been removed.");
       }
-      // Manual input verification for when 6 digits are typed
+      window.authenticatePin = function() {
+        alert("PIN authentication functionality has been removed.");
+      }
+      window.registerCredential = function() {
+        alert("Device registration functionality has been removed.");
+      }
+      window.enableDeviceLock = function() {
+        alert("Device lock functionality has been removed.");
+      }
+      
+      // Remove paste button event for UI-only behavior
       var totpInput = document.getElementById("totpCodeInput");
       if (totpInput) {
         totpInput.addEventListener("input", function() {
           if (this.value.length === 6) {
-            verifyTOTPCode();
+            // UI-only; no further action.
           }
         });
       }
-      
-      /* ---------- Paste Code Button Functionality ---------- */
-      var pasteButton = document.getElementById("pasteButton");
-      if (pasteButton) {
-        pasteButton.addEventListener("click", function() {
-          if(navigator.clipboard) {
-            navigator.permissions.query({ name: "clipboard-read" }).then(permissionStatus => {
-              if (permissionStatus.state === "granted" || permissionStatus.state === "prompt") {
-                return navigator.clipboard.readText();
-              } else {
-                throw new Error("Clipboard read permission denied.");
-              }
-            }).then(text => {
-              let code = text.trim();
-              if(code.length === 6 && /^\d{6}$/.test(code)) {
-                document.getElementById("totpCodeInput").value = code;
-                verifyTOTPCode();
-              } else {
-                alert("Clipboard does not contain a valid 6-digit code.");
-              }
-            }).catch(err => {
-              console.error("Clipboard read failed:", err);
-              alert("Clipboard access is not available. Please enter the code manually.");
-            });
-          } else {
-            alert("Clipboard access is not supported in this browser. Please enter the code manually.");
-          }
-        });
-      }
-      
-      /* ---------- Pay PIN Functionality ---------- */
-      window.authenticatePin = function() {
-        const pin = document.getElementById("payPin").value.trim();
-        if (!/^\d{6}$/.test(pin)) { alert("Please enter a valid 6-digit PIN."); return; }
-        localStorage.setItem("payPin", pin);
-        alert("PIN successfully set!");
-        setTimeout(() => { showSecurityPage(); }, 3000);
-      }
-      
-      /* ---------- Profile Update Function ---------- */
-      window.updateProfile = function() {
-        alert("Your profile has been updated successfully.");
-      }
-      
-      /* ---------- Contact/Need Help Page ---------- */
-      // The advanced "Need Help?" page uses buttons to redirect to support channels.
-      
-      /* ---------- WebAuthn Functions for Device Lock ---------- */
-      function arrayBufferToBase64(buffer) {
-        let binary = "";
-        const bytes = new Uint8Array(buffer);
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        return window.btoa(binary);
-      }
-      function base64ToArrayBuffer(base64) {
-        const binary = window.atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-          bytes[i] = binary.charCodeAt(i);
-        }
-        return bytes.buffer;
-      }
-      window.registerCredential = async function() {
-        if (!window.isSecureContext) { alert("Registration requires HTTPS or localhost."); return; }
-        if (!window.PublicKeyCredential) { alert("WebAuthn is not supported on this device."); return; }
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-        const publicKeyCredentialCreationOptions = {
-          challenge: challenge,
-          rp: { name: "MyApp" },
-          user: {
-            id: Uint8Array.from(userData.uid, c => c.charCodeAt(0)),
-            name: userData.email,
-            displayName: userData.name
-          },
-          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required"
-          },
-          timeout: 60000,
-          attestation: "none"
-        };
-        try {
-          const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
-          const credIdBase64 = arrayBufferToBase64(credential.rawId);
-          localStorage.setItem("credentialId", credIdBase64);
-          alert("Registration successful! Your device is now registered for biometric authentication.");
-        } catch (err) {
-          alert("Registration failed: " + err.message);
-        }
-      }
-      window.enableDeviceLock = async function() {
-        if (!window.isSecureContext) { alert("Device lock requires HTTPS or localhost."); return; }
-        if (!window.PublicKeyCredential) { alert("WebAuthn is not supported on this device."); return; }
-        const storedCredentialId = localStorage.getItem("credentialId");
-        if (!storedCredentialId) { alert("No registered credential found. Please register your device first."); return; }
-        try {
-          const challenge = new Uint8Array(32);
-          window.crypto.getRandomValues(challenge);
-          const publicKeyCredentialRequestOptions = {
-            challenge: challenge,
-            timeout: 60000,
-            userVerification: "required",
-            allowCredentials: [{
-              type: "public-key",
-              id: new Uint8Array(base64ToArrayBuffer(storedCredentialId))
-            }]
-          };
-          await navigator.credentials.get({ publicKey: publicKeyCredentialRequestOptions });
-          alert("Device lock enabled using biometric authentication!");
-        } catch (err) {
-          alert("Device authentication failed: " + err.message);
-        }
-      }
-      
-      /* ---------- Device Lock Timer ---------- */
-      let lockTimer;
-      const deviceLockElem = document.getElementById("deviceLockTimer");
-      if (deviceLockElem) {
-        deviceLockElem.addEventListener("change", function () {
-          clearTimeout(lockTimer);
-        });
-      }
-      document.addEventListener("visibilitychange", function () {
-        if (document.hidden) {
-          const timerInSeconds = parseInt(document.getElementById("deviceLockTimer").value, 10);
-          if (timerInSeconds === 0) { enableDeviceLock(); }
-          else { lockTimer = setTimeout(enableDeviceLock, timerInSeconds * 1000); }
-        } else {
-          clearTimeout(lockTimer);
-        }
-      });
       
       /* ---------- Show Default Page ---------- */
       showAccountInfoPage();

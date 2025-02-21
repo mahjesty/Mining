@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Complete Deposit Flow - Real Network Selector with Fallback</title>
+  <style>
+    /* -----------------------------
+       GLOBAL STYLES & RESET
+    ------------------------------ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #000;
+      color: #fff;
+      min-height: 100vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    /* -----------------------------
+       1) BOTTOM-SHEET MODAL
+    ------------------------------ */
+    .payment-modal {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #1a1a1a;
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+      overflow-y: auto;
+      max-height: 80vh;
+      padding-bottom: 1rem;
+      z-index: 9999;
+    }
+    @media (min-width: 768px) {
+      .payment-modal {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+    }
+    .payment-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #2c2c2c;
+      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .payment-modal-header h2 {
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+      transition: color 0.3s ease;
+    }
+    .close-btn:hover {
+      color: #fff;
+    }
+    .payment-options {
+      display: flex;
+      flex-direction: column;
+    }
+    .payment-option {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid #333;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .payment-option:hover {
+      background-color: #2a2a2a;
+    }
+    .payment-option:last-child {
+      border-bottom: none;
+    }
+    .icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #2e2e2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.75rem;
+      overflow: hidden;
+    }
+    .icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .content {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: #fff;
+    }
+    .desc {
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+    .tag {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 8px;
+      background-color: #34c759;
+      color: #fff;
+      margin-left: auto;
+      align-self: center;
+    }
+    .payment-option.recommended {
+      border-left: 4px solid #34c759;
+    }
+    /* -----------------------------
+       2) DEPOSIT CRYPTO LIST PAGE
+    ------------------------------ */
+    .crypto-list-container {
+      display: none;
+      background-color: #000;
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+    .top-bar {
+      position: sticky;
+      top: 0;
+      background-color: #121212;
+      z-index: 10;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+    }
+    .back-btn {
+      background-color: #2c2c2c;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      color: #fff;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-right: 1rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      transition: background-color 0.3s;
+    }
+    .back-btn:hover {
+      background-color: #34c759;
+    }
+    .screen-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .search-banner-tabs {
+      background-color: #121212;
+      padding: 0 1rem 1rem 1rem;
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background-color: #1a1a1a;
+      border-radius: 6px;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+    .search-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.9rem;
+      padding-left: 0.5rem;
+      outline: none;
+    }
+    .search-bar input::placeholder {
+      color: #777;
+    }
+    .search-icon {
+      color: #777;
+      font-size: 1rem;
+    }
+    .clear-btn {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      position: absolute;
+      right: 0.5rem;
+      display: none;
+    }
+    .deposit-banner {
+      background-color: #2c2c2c;
+      padding: 0.5rem 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .deposit-banner a {
+      color: #34c759;
+      text-decoration: none;
+      margin-left: 0.5rem;
+      cursor: pointer;
+    }
+    .deposit-banner a:hover {
+      text-decoration: underline;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #333;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 0.75rem 0;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #999;
+      transition: color 0.3s;
+    }
+    .tab:hover {
+      color: #fff;
+    }
+    .tab.active {
+      color: #fff;
+      border-bottom: 2px solid #34c759;
+    }
+    .recent-cryptos-container {
+      padding: 1rem;
+    }
+    .recent-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .recent-cryptos-grid {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+    }
+    .recent-crypto-card {
+      min-width: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .recent-crypto-card:hover {
+      opacity: 0.8;
+    }
+    .recent-crypto-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-bottom: 0.25rem;
+      object-fit: cover;
+    }
+    .recent-crypto-symbol {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .list-container {
+      position: relative;
+      padding: 0 1rem 2rem 1rem;
+    }
+    .letter-section {
+      margin-top: 1.5rem;
+    }
+    .letter-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+      margin-bottom: 0.25rem;
+    }
+    .crypto-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #2a2a2a;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .crypto-item:hover {
+      background-color: #1f1f1f;
+    }
+    .crypto-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      margin-right: 0.75rem;
+      object-fit: cover;
+    }
+    .crypto-symbol {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .crypto-name {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    .alphabet-nav {
+      position: fixed;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: rgba(0,0,0,0.2);
+      padding: 0.3rem;
+      border-radius: 8px;
+      z-index: 100;
+    }
+    .alphabet-nav a {
+      text-decoration: none;
+      color: #777;
+      font-size: 0.6rem;
+      margin: 0.1rem 0;
+      transition: color 0.3s;
+    }
+    .alphabet-nav a:hover {
+      color: #fff;
+    }
+    .alphabet-nav a.active {
+      color: #34c759;
+      font-weight: bold;
+    }
+    /* -----------------------------
+       3) LEARN MORE SLIDER
+    ------------------------------ */
+    .learn-more-slider {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80vh;
+      background-color: #121212;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      z-index: 10000;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .learn-more-slider.active {
+      transform: translateY(0);
+    }
+    .slider-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .slider-header h2 {
+      font-size: 1.2rem;
+      color: #fff;
+    }
+    .slider-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .slider-close:hover {
+      color: #fff;
+    }
+    .slider-content {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #ccc;
+    }
+    .slider-content ol {
+      margin-left: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .slider-content li {
+      margin-bottom: 0.5rem;
+    }
+    .slider-content p {
+      margin-top: 1rem;
+    }
+    /* Responsive Search Bar */
+    @media (max-width: 480px) {
+      .search-bar {
+        padding: 0.5rem 0.75rem;
+      }
+      .search-bar input {
+        font-size: 0.8rem;
+      }
+    }
+    /* -----------------------------
+       4) COIN DEPOSIT PAGE
+    ------------------------------ */
+    .coin-deposit-page {
+      display: none;
+      background-color: #000;
+      color: #fff;
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+    .coin-deposit-page .top-bar {
+      position: sticky;
+      top: 0;
+      background-color: #121212;
+      z-index: 10;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+    }
+    .coin-deposit-page .screen-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .coin-deposit-page .deposit-content {
+      padding: 1rem;
+    }
+    .qr-code-container {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .qr-code {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      background-color: #fff;
+      border-radius: 8px;
+    }
+    .wallet-address {
+      background-color: #1a1a1a;
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      word-break: break-all;
+    }
+    .copy-address-btn {
+      background-color: #2c2c2c;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      color: #fff;
+      font-size: 0.85rem;
+      margin-left: 1rem;
+    }
+    .deposit-info {
+      background-color: #1a1a1a;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+    .info-label {
+      color: #888;
+      margin-right: 1rem;
+    }
+    /* New Change Network button */
+    .change-network-btn {
+      background-color: #34c759;
+      border: none;
+      border-radius: 4px;
+      padding: 0.3rem 0.5rem;
+      margin-left: 0.5rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: #000;
+    }
+    .change-network-btn:hover {
+      background-color: #2ab347;
+    }
+    .notice-section {
+      background-color: #1a1a1a;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .save-picture-btn,
+    .copy-address-btn {
+      background-color: #2c2c2c;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      color: #fff;
+      font-size: 0.85rem;
+    }
+    /* -----------------------------
+       5) NETWORK SELECTION SLIDER
+    ------------------------------ */
+    .coin-networks-slider {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50vh;
+      background-color: #121212;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      z-index: 10001;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .coin-networks-slider.active {
+      transform: translateY(0);
+    }
+    .coin-networks-slider .slider-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .coin-networks-slider .slider-header h2 {
+      font-size: 1.2rem;
+      color: #fff;
+    }
+    .coin-networks-slider .slider-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .coin-networks-slider .slider-close:hover {
+      color: #fff;
+    }
+    .network-list {
+      list-style: none;
+      margin-top: 1rem;
+    }
+    .network-list li {
+      padding: 0.75rem;
+      border-bottom: 1px solid #2a2a2a;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .network-list li:hover {
+      background-color: #1f1f1f;
+    }
+    .network-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.2rem;
+    }
+    .network-desc {
+      font-size: 0.8rem;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <!-- 1) Bottom Sheet: Select Payment Method -->
+  <div class="payment-modal">
+    <div class="payment-modal-header">
+      <h2>Select Payment Method</h2>
+      <button class="close-btn" title="Close">&times;</button>
+    </div>
+    <div class="payment-options">
+      <!-- Option 1: Deposit EUR (Recommended) -->
+      <div class="payment-option recommended">
+        <div class="icon">💶</div>
+        <div class="content">
+          <div class="title">Deposit EUR</div>
+          <div class="desc">via Bank Transfers or Top-Ups</div>
+        </div>
+        <div class="tag">Recommended</div>
+      </div>
+      <!-- Option 2: Buy with EUR -->
+      <div class="payment-option">
+        <div class="icon">💳</div>
+        <div class="content">
+          <div class="title">Buy with EUR</div>
+          <div class="desc">Visa, Mastercard and JCB are supported</div>
+        </div>
+      </div>
+      <!-- Option 3: P2P Trading -->
+      <div class="payment-option">
+        <div class="icon">🤝</div>
+        <div class="content">
+          <div class="title">P2P Trading</div>
+          <div class="desc">Bank Transfer, Revolut, Wise and more</div>
+        </div>
+      </div>
+      <!-- Option 4: Deposit Crypto -->
+      <div class="payment-option" id="deposit-crypto-option">
+        <div class="icon">
+          <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=025" alt="Bitcoin Logo">
+        </div>
+        <div class="content">
+          <div class="title">Deposit Crypto</div>
+          <div class="desc">Already have crypto? Deposit directly</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2) Deposit Crypto List Page -->
+  <div class="crypto-list-container">
+    <!-- Top Bar: Back Button + Title -->
+    <div class="top-bar">
+      <button class="back-btn" id="back-btn">&#8592;</button>
+      <div class="screen-title">Deposit Crypto</div>
+    </div>
+    <!-- Search, Banner & Tabs -->
+    <div class="search-banner-tabs">
+      <div class="search-bar">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="crypto-search" placeholder="Please select your preferred pair" />
+        <button type="button" id="clear-search" class="clear-btn">×</button>
+      </div>
+      <div class="deposit-banner">
+        <span>How to Deposit?</span>
+        <a id="learn-more" href="javascript:void(0)">Learn More &gt;</a>
+      </div>
+      <div class="tabs">
+        <div class="tab active" id="tab-crypto">Crypto</div>
+        <div class="tab" id="tab-fiat">Fiat</div>
+      </div>
+    </div>
+    <!-- Frequently Deposited Cryptocurrencies -->
+    <div class="recent-cryptos-container">
+      <div class="recent-title">Frequently Deposited Cryptocurrencies</div>
+      <div class="recent-cryptos-grid">
+        <div class="recent-crypto-card">
+          <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=025" alt="BTC Logo" class="recent-crypto-logo" />
+          <div class="recent-crypto-symbol">BTC</div>
+        </div>
+        <div class="recent-crypto-card">
+          <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=025" alt="ETH Logo" class="recent-crypto-logo" />
+          <div class="recent-crypto-symbol">ETH</div>
+        </div>
+        <div class="recent-crypto-card">
+          <img src="https://cryptologos.cc/logos/tether-usdt-logo.png?v=025" alt="USDT Logo" class="recent-crypto-logo" />
+          <div class="recent-crypto-symbol">USDT</div>
+        </div>
+        <div class="recent-crypto-card">
+          <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=025" alt="BNB Logo" class="recent-crypto-logo" />
+          <div class="recent-crypto-symbol">BNB</div>
+        </div>
+        <div class="recent-crypto-card">
+          <img src="https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=025" alt="DOGE Logo" class="recent-crypto-logo" />
+          <div class="recent-crypto-symbol">DOGE</div>
+        </div>
+        <div class="recent-crypto-card">
+          <img src="https://cryptologos.cc/logos/cardano-ada-logo.png?v=025" alt="ADA Logo" class="recent-crypto-logo" />
+          <div class="recent-crypto-symbol">ADA</div>
+        </div>
+      </div>
+    </div>
+    <!-- Main Crypto List (Alphabetical Sections for Coins) -->
+    <div class="list-container">
+      <!-- Section A -->
+      <div class="letter-section" id="A">
+        <div class="letter-title">A</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/avalanche-avax-logo.png?v=025" alt="AVAX Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">AVAX</div>
+            <div class="crypto-name">Avalanche</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/algorand-algo-logo.png?v=025" alt="ALGO Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">ALGO</div>
+            <div class="crypto-name">Algorand</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/axie-infinity-axs-logo.png?v=025" alt="AXS Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">AXS</div>
+            <div class="crypto-name">Axie Infinity</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section B -->
+      <div class="letter-section" id="B">
+        <div class="letter-title">B</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=025" alt="BTC Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">BTC</div>
+            <div class="crypto-name">Bitcoin</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=025" alt="BNB Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">BNB</div>
+            <div class="crypto-name">Binance Coin</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/bitcoin-cash-bch-logo.png?v=025" alt="BCH Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">BCH</div>
+            <div class="crypto-name">Bitcoin Cash</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/bitcoin-sv-bsv-logo.png?v=025" alt="BSV Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">BSV</div>
+            <div class="crypto-name">Bitcoin SV</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section C -->
+      <div class="letter-section" id="C">
+        <div class="letter-title">C</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/cardano-ada-logo.png?v=025" alt="ADA Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">ADA</div>
+            <div class="crypto-name">Cardano</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/cosmos-atom-logo.png?v=025" alt="ATOM Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">ATOM</div>
+            <div class="crypto-name">Cosmos</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/chainlink-link-logo.png?v=025" alt="LINK Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">LINK</div>
+            <div class="crypto-name">Chainlink</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/compound-comp-logo.png?v=025" alt="COMP Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">COMP</div>
+            <div class="crypto-name">Compound</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section D -->
+      <div class="letter-section" id="D">
+        <div class="letter-title">D</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=025" alt="DOGE Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">DOGE</div>
+            <div class="crypto-name">Dogecoin</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/dai-dai-logo.png?v=025" alt="DAI Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">DAI</div>
+            <div class="crypto-name">Dai</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/decentraland-mana-logo.png?v=025" alt="MANA Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">MANA</div>
+            <div class="crypto-name">Decentraland</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/dash-dash-logo.png?v=025" alt="DASH Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">DASH</div>
+            <div class="crypto-name">Dash</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section E -->
+      <div class="letter-section" id="E">
+        <div class="letter-title">E</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=025" alt="ETH Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">ETH</div>
+            <div class="crypto-name">Ethereum</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/ethereum-classic-etc-logo.png?v=025" alt="ETC Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">ETC</div>
+            <div class="crypto-name">Ethereum Classic</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/eos-eos-logo.png?v=025" alt="EOS Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">EOS</div>
+            <div class="crypto-name">EOS</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/polkadot-new-dot-logo.png?v=025" alt="DOT Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">DOT</div>
+            <div class="crypto-name">Polkadot</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section F -->
+      <div class="letter-section" id="F">
+        <div class="letter-title">F</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/filecoin-fil-logo.png?v=025" alt="FIL Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">FIL</div>
+            <div class="crypto-name">Filecoin</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/fantom-ftm-logo.png?v=025" alt="FTM Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">FTM</div>
+            <div class="crypto-name">Fantom</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/flow-flow-logo.png?v=025" alt="FLOW Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">FLOW</div>
+            <div class="crypto-name">Flow</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section G -->
+      <div class="letter-section" id="G">
+        <div class="letter-title">G</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/the-graph-grt-logo.png?v=025" alt="GRT Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">GRT</div>
+            <div class="crypto-name">The Graph</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section H -->
+      <div class="letter-section" id="H">
+        <div class="letter-title">H</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/hedera-hbar-logo.png?v=025" alt="HBAR Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">HBAR</div>
+            <div class="crypto-name">Hedera</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section I -->
+      <div class="letter-section" id="I">
+        <div class="letter-title">I</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/internet-computer-icp-logo.png?v=025" alt="ICP Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">ICP</div>
+            <div class="crypto-name">Internet Computer</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/iota-iota-logo.png?v=025" alt="IOTA Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">IOTA</div>
+            <div class="crypto-name">IOTA</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/immutable-x-imx-logo.png?v=025" alt="IMX Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">IMX</div>
+            <div class="crypto-name">Immutable X</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section K -->
+      <div class="letter-section" id="K">
+        <div class="letter-title">K</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/kucoin-token-kcs-logo.png?v=025" alt="KCS Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">KCS</div>
+            <div class="crypto-name">KuCoin Token</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section L -->
+      <div class="letter-section" id="L">
+        <div class="letter-title">L</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=025" alt="LTC Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">LTC</div>
+            <div class="crypto-name">Litecoin</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section M -->
+      <div class="letter-section" id="M">
+        <div class="letter-title">M</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/monero-xmr-logo.png?v=025" alt="XMR Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">XMR</div>
+            <div class="crypto-name">Monero</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/maker-mkr-logo.png?v=025" alt="MKR Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">MKR</div>
+            <div class="crypto-name">Maker</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section N -->
+      <div class="letter-section" id="N">
+        <div class="letter-title">N</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/nem-xem-logo.png?v=025" alt="XEM Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">XEM</div>
+            <div class="crypto-name">NEM</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section O -->
+      <div class="letter-section" id="O">
+        <div class="letter-title">O</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/ocean-protocol-ocean-logo.png?v=025" alt="OCEAN Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">OCEAN</div>
+            <div class="crypto-name">Ocean Protocol</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section P -->
+      <div class="letter-section" id="P">
+        <div class="letter-title">P</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/polygon-matic-logo.png?v=025" alt="MATIC Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">MATIC</div>
+            <div class="crypto-name">Polygon</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/pancakeswap-cake-logo.png?v=025" alt="CAKE Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">CAKE</div>
+            <div class="crypto-name">PancakeSwap</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section R -->
+      <div class="letter-section" id="R">
+        <div class="letter-title">R</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/ravencoin-rvn-logo.png?v=025" alt="RVN Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">RVN</div>
+            <div class="crypto-name">Ravencoin</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section S -->
+      <div class="letter-section" id="S">
+        <div class="letter-title">S</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=025" alt="SOL Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">SOL</div>
+            <div class="crypto-name">Solana</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/shiba-inu-shib-logo.png?v=025" alt="SHIB Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">SHIB</div>
+            <div class="crypto-name">Shiba Inu</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/stellar-xlm-logo.png?v=025" alt="XLM Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">XLM</div>
+            <div class="crypto-name">Stellar</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/sushiswap-sushi-logo.png?v=025" alt="SUSHI Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">SUSHI</div>
+            <div class="crypto-name">SushiSwap</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section T -->
+      <div class="letter-section" id="T">
+        <div class="letter-title">T</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/tether-usdt-logo.png?v=025" alt="USDT Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">USDT</div>
+            <div class="crypto-name">Tether</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/tron-trx-logo.png?v=025" alt="TRX Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">TRX</div>
+            <div class="crypto-name">TRON</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/theta-theta-logo.png?v=025" alt="THETA Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">THETA</div>
+            <div class="crypto-name">Theta Network</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section U -->
+      <div class="letter-section" id="U">
+        <div class="letter-title">U</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=025" alt="USDC Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">USDC</div>
+            <div class="crypto-name">USD Coin</div>
+          </div>
+        </div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/uniswap-uni-logo.png?v=025" alt="UNI Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">UNI</div>
+            <div class="crypto-name">Uniswap</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section V -->
+      <div class="letter-section" id="V">
+        <div class="letter-title">V</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/vechain-vet-logo.png?v=025" alt="VET Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">VET</div>
+            <div class="crypto-name">VeChain</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section W -->
+      <div class="letter-section" id="W">
+        <div class="letter-title">W</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/waves-waves-logo.png?v=025" alt="WAVES Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">WAVES</div>
+            <div class="crypto-name">Waves</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section X -->
+      <div class="letter-section" id="X">
+        <div class="letter-title">X</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/xrp-xrp-logo.png?v=025" alt="XRP Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">XRP</div>
+            <div class="crypto-name">XRP</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section Y -->
+      <div class="letter-section" id="Y">
+        <div class="letter-title">Y</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/yearn-finance-yfi-logo.png?v=025" alt="YFI Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">YFI</div>
+            <div class="crypto-name">Yearn Finance</div>
+          </div>
+        </div>
+      </div>
+      <!-- Section Z -->
+      <div class="letter-section" id="Z">
+        <div class="letter-title">Z</div>
+        <div class="crypto-item">
+          <img src="https://cryptologos.cc/logos/zcash-zec-logo.png?v=025" alt="ZEC Logo" class="crypto-logo" />
+          <div>
+            <div class="crypto-symbol">ZEC</div>
+            <div class="crypto-name">Zcash</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Alphabetical Navigation -->
+    <div class="alphabet-nav">
+      <a href="#A">A</a>
+      <a href="#B">B</a>
+      <a href="#C">C</a>
+      <a href="#D">D</a>
+      <a href="#E">E</a>
+      <a href="#F">F</a>
+      <a href="#G">G</a>
+      <a href="#H">H</a>
+      <a href="#I">I</a>
+      <a href="#K">K</a>
+      <a href="#L">L</a>
+      <a href="#M">M</a>
+      <a href="#N">N</a>
+      <a href="#O">O</a>
+      <a href="#P">P</a>
+      <a href="#R">R</a>
+      <a href="#S">S</a>
+      <a href="#T">T</a>
+      <a href="#U">U</a>
+      <a href="#V">V</a>
+      <a href="#W">W</a>
+      <a href="#X">X</a>
+      <a href="#Y">Y</a>
+      <a href="#Z">Z</a>
+    </div>
+  </div>
+
+  <!-- 3) Learn More Slider (Hidden by Default) -->
+  <div class="learn-more-slider" id="learn-more-slider">
+    <div class="slider-header">
+      <h2>How to Deposit Crypto</h2>
+      <button class="slider-close" id="slider-close">&times;</button>
+    </div>
+    <div class="slider-content">
+      <p>Follow these steps to safely deposit crypto into your wallet:</p>
+      <ol>
+        <li><strong>Access Your Wallet:</strong> Open your crypto wallet and navigate to the "Deposit" section.</li>
+        <li><strong>Obtain Your Address:</strong> Copy your wallet's deposit address or scan the provided QR code. Always verify the address before proceeding.</li>
+        <li><strong>Initiate the Transfer:</strong> From your crypto exchange or another wallet, send the desired amount of crypto to the copied address.</li>
+        <li><strong>Confirm the Transaction:</strong> Ensure you review the transaction details and confirm. Wait for the required network confirmations.</li>
+        <li><strong>Monitor Your Balance:</strong> Once confirmed, your deposited funds will reflect in your wallet balance. This may take a few minutes depending on network traffic.</li>
+      </ol>
+      <p>Please note: Always double-check your wallet address and transaction details. If you encounter any issues, contact our support team for assistance.</p>
+    </div>
+  </div>
+
+  <!-- 4) Coin Deposit Page -->
+  <div class="coin-deposit-page" id="coin-deposit-page">
+    <!-- Top Bar: Back Button + Dynamic Title -->
+    <div class="top-bar">
+      <button class="back-btn" id="deposit-page-back-btn">&#8592;</button>
+      <div class="screen-title" id="coin-deposit-title">Deposit BTC</div>
+    </div>
+    <!-- Main Deposit Content -->
+    <div class="deposit-content">
+      <!-- QR Code Section -->
+      <div class="qr-code-container">
+        <img id="coin-qr-code" src="" alt="QR Code" class="qr-code" />
+      </div>
+      <!-- Wallet Address & Copy Button -->
+      <div class="wallet-address">
+        <span id="coin-wallet-address">Loading...</span>
+        <button class="copy-address-btn" id="copy-coin-address-btn">Copy Address</button>
+      </div>
+      <!-- Basic Deposit Info -->
+      <div class="deposit-info">
+        <div class="info-row">
+          <span class="info-label">Network:</span>
+          <span id="coin-network">Loading...</span>
+          <!-- Change Network Button to reopen the slider -->
+          <button class="change-network-btn" id="change-network-btn">Change</button>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Minimum Deposit Amount:</span>
+          <span id="coin-min-deposit">Loading...</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Deposit To:</span>
+          <span id="coin-funding-account">Your Funding Account</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Deposit Arrival:</span>
+          <span id="coin-confirmations">Loading...</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Withdrawal Unlocked:</span>
+          <span id="coin-withdrawal-unlocked">Loading...</span>
+        </div>
+      </div>
+      <!-- Notice Section -->
+      <div class="notice-section">
+        <h3>Notice:</h3>
+        <p>
+          In upholding the integrity and safety of our platform’s trading environment,
+          we are dedicated to combating financial crime and ensuring compliance with
+          regulations. Always double-check your deposit address before sending.
+        </p>
+      </div>
+      <!-- Action Buttons -->
+      <div class="actions">
+        <button class="save-picture-btn" id="save-coin-picture-btn">Save Picture</button>
+        <button class="copy-address-btn" id="copy-coin-address-btn-2">Copy Address</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5) Network Selection Slider (Auto-Shown When Deposit Page Opens) -->
+  <div class="coin-networks-slider" id="coin-networks-slider">
+    <div class="slider-header">
+      <h2>Select a Network</h2>
+      <button class="slider-close" id="network-slider-close">&times;</button>
+    </div>
+    <ul class="network-list" id="coin-network-list">
+      <!-- Network options will be populated here -->
+    </ul>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      /****************************************
+       * 1) BOTTOM SHEET MODAL
+       ****************************************/
+      const paymentModal = document.querySelector('.payment-modal');
+      const closeBtn = document.querySelector('.close-btn');
+      closeBtn.addEventListener('click', () => {
+        paymentModal.style.display = 'none';
+      });
+
+      /****************************************
+       * 2) CRYPTO LIST
+       ****************************************/
+      const depositCryptoOption = document.getElementById('deposit-crypto-option');
+      const cryptoListContainer = document.querySelector('.crypto-list-container');
+      const tabCrypto = document.getElementById('tab-crypto');
+      const tabFiat = document.getElementById('tab-fiat');
+
+      depositCryptoOption.addEventListener('click', () => {
+        paymentModal.style.display = 'none';
+        cryptoListContainer.style.display = 'block';
+        tabCrypto.classList.add('active');
+        tabFiat.classList.remove('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      const backBtn = document.getElementById('back-btn');
+      backBtn.addEventListener('click', () => {
+        cryptoListContainer.style.display = 'none';
+        paymentModal.style.display = 'block';
+      });
+
+      // Tab switching
+      tabCrypto.addEventListener('click', () => {
+        tabCrypto.classList.add('active');
+        tabFiat.classList.remove('active');
+      });
+      tabFiat.addEventListener('click', () => {
+        tabFiat.classList.add('active');
+        tabCrypto.classList.remove('active');
+      });
+
+      // Image error handler
+      document.querySelectorAll('.crypto-item img').forEach(function(img) {
+        img.onerror = function() {
+          this.src = "https://cryptologos.cc/logos/elrond-egld-logo.png?v=025";
+        };
+      });
+
+      /****************************************
+       * 3) SEARCH FUNCTIONALITY
+       ****************************************/
+      const searchInput = document.getElementById('crypto-search');
+      const clearBtnEl = document.getElementById('clear-search');
+      searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        clearBtnEl.style.display = query.length > 0 ? 'block' : 'none';
+        
+        const cryptoItems = document.querySelectorAll('.list-container .crypto-item');
+        cryptoItems.forEach(function(item) {
+          if(query === "" || item.textContent.toLowerCase().includes(query)) {
+            item.style.display = 'flex';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+
+        const letterSections = document.querySelectorAll('.list-container .letter-section');
+        letterSections.forEach(function(section) {
+          let anyVisible = false;
+          section.querySelectorAll('.crypto-item').forEach(function(item) {
+            if(window.getComputedStyle(item).display !== "none") {
+              anyVisible = true;
+            }
+          });
+          section.style.display = (query !== "" && !anyVisible) ? 'none' : 'block';
+        });
+
+        const alphabetNav = document.querySelector('.alphabet-nav');
+        alphabetNav.style.display = query !== "" ? 'none' : 'flex';
+      });
+
+      clearBtnEl.addEventListener('click', function() {
+        searchInput.value = "";
+        clearBtnEl.style.display = 'none';
+        searchInput.dispatchEvent(new Event('input'));
+      });
+
+      /****************************************
+       * 4) LEARN MORE SLIDER
+       ****************************************/
+      const learnMoreLink = document.getElementById('learn-more');
+      const learnMoreSlider = document.getElementById('learn-more-slider');
+      const sliderClose = document.getElementById('slider-close');
+      learnMoreLink.addEventListener('click', () => {
+        learnMoreSlider.classList.add('active');
+      });
+      sliderClose.addEventListener('click', () => {
+        learnMoreSlider.classList.remove('active');
+      });
+
+      // Highlight active letter on scroll
+      const navLinks = document.querySelectorAll('.alphabet-nav a');
+      window.addEventListener('scroll', () => {
+        if (cryptoListContainer.style.display === 'block') {
+          let currentSection = '';
+          document.querySelectorAll('.letter-section').forEach(section => {
+            const sectionTop = section.offsetTop - 100;
+            if (window.scrollY >= sectionTop) {
+              currentSection = section.getAttribute('id');
+            }
+          });
+          navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + currentSection) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+
+      /****************************************
+       * 5) COIN DEPOSIT PAGE
+       ****************************************/
+      const coinDepositPage = document.getElementById('coin-deposit-page');
+      const depositPageBackBtn = document.getElementById('deposit-page-back-btn');
+      const coinDepositTitle = document.getElementById('coin-deposit-title');
+      const coinQrCode = document.getElementById('coin-qr-code');
+      const coinWalletAddress = document.getElementById('coin-wallet-address');
+      const coinNetwork = document.getElementById('coin-network');
+      const coinMinDeposit = document.getElementById('coin-min-deposit');
+      const coinConfirmations = document.getElementById('coin-confirmations');
+      const coinWithdrawalUnlocked = document.getElementById('coin-withdrawal-unlocked');
+
+      depositPageBackBtn.addEventListener('click', () => {
+        coinDepositPage.style.display = 'none';
+        cryptoListContainer.style.display = 'block';
+      });
+
+      /****************************************
+       * 6) NETWORK SELECTION SLIDER
+       ****************************************/
+      const coinNetworksSlider = document.getElementById('coin-networks-slider');
+      const networkSliderClose = document.getElementById('network-slider-close');
+      const coinNetworkList = document.getElementById('coin-network-list');
+
+      // Close the network slider
+      networkSliderClose.addEventListener('click', () => {
+        coinNetworksSlider.classList.remove('active');
+      });
+
+      // Populate the network slider with available networks for the coin
+      function populateNetworkList(networks) {
+        coinNetworkList.innerHTML = ""; // clear existing items
+        networks.forEach(net => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <div class="network-name">${net.networkName}</div>
+            <div class="network-desc">${net.description || ''}</div>
+          `;
+          li.addEventListener('click', () => {
+            // When a network is selected, update deposit info and close slider
+            updateDepositFields(net);
+            coinNetworksSlider.classList.remove('active');
+          });
+          coinNetworkList.appendChild(li);
+        });
+      }
+
+      // Update the deposit page fields with the chosen network's data
+      function updateDepositFields(netData) {
+        coinWalletAddress.textContent = netData.address;
+        coinNetwork.textContent = netData.networkName;
+        coinMinDeposit.textContent = `${netData.minDeposit} ${netData.symbol}`;
+        coinConfirmations.textContent = `${netData.confirmations} confirmation(s)`;
+        coinWithdrawalUnlocked.textContent = `${netData.withdrawalUnlocked} confirmation(s)`;
+        coinQrCode.src = netData.qrCodeUrl;
+      }
+
+      // Open the coin deposit page with coin data from the backend or fallback
+      function openCoinDepositPage(coinData) {
+        // Hide the crypto list and show the deposit page
+        cryptoListContainer.style.display = 'none';
+        coinDepositPage.style.display = 'block';
+
+        // Set page title
+        coinDepositTitle.textContent = `Deposit ${coinData.symbol}`;
+
+        // Populate the network slider with the coin's networks
+        populateNetworkList(coinData.networks || []);
+
+        // Automatically show the network slider when entering the deposit page
+        coinNetworksSlider.classList.add('active');
+
+        // Set default deposit info from the first available network
+        if (coinData.networks && coinData.networks.length > 0) {
+          updateDepositFields(coinData.networks[0]);
+        } else {
+          updateDepositFields({
+            networkName: coinData.symbol,
+            address: coinData.address || 'N/A',
+            minDeposit: coinData.minDeposit || '0',
+            symbol: coinData.symbol,
+            confirmations: 1,
+            withdrawalUnlocked: 2,
+            qrCodeUrl: coinData.qrCodeUrl || ''
+          });
+        }
+      }
+
+      /****************************************
+       * 7) CHANGE NETWORK BUTTON
+       ****************************************/
+      const changeNetworkBtn = document.getElementById('change-network-btn');
+      changeNetworkBtn.addEventListener('click', () => {
+        coinNetworksSlider.classList.add('active');
+      });
+
+      /****************************************
+       * 8) COPY ADDRESS & SAVE PICTURE BUTTONS
+       ****************************************/
+      const copyButtons = [
+        document.getElementById('copy-coin-address-btn'),
+        document.getElementById('copy-coin-address-btn-2')
+      ];
+      copyButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const address = coinWalletAddress.textContent;
+          navigator.clipboard.writeText(address).then(() => {
+            alert('Address copied to clipboard!');
+          });
+        });
+      });
+      const savePictureBtn = document.getElementById('save-coin-picture-btn');
+      savePictureBtn.addEventListener('click', () => {
+        const qrSrc = coinQrCode.src;
+        window.open(qrSrc, '_blank');
+      });
+
+      /****************************************
+       * 9) REAL NETWORK CALLING VIA FETCH WITH FALLBACK
+       ****************************************/
+      // Define fallback data in case the fetch fails (for frequently used coins)
+      const fallbackCoinData = {
+        BTC: {
+          symbol: 'BTC',
+          networks: [
+            {
+              networkName: 'BTC',
+              description: 'Native Bitcoin Network',
+              address: '1RealBTCDepositAddress',
+              minDeposit: '0.00006',
+              symbol: 'BTC',
+              confirmations: 1,
+              withdrawalUnlocked: 2,
+              qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=1RealBTCDepositAddress'
+            }
+          ]
+        },
+        ETH: {
+          symbol: 'ETH',
+          networks: [
+            {
+              networkName: 'ERC20',
+              description: 'Ethereum Mainnet',
+              address: '0xRealETHDepositAddress',
+              minDeposit: '0.01',
+              symbol: 'ETH',
+              confirmations: 15,
+              withdrawalUnlocked: 15,
+              qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xRealETHDepositAddress'
+            }
+          ]
+        },
+        USDT: {
+          symbol: 'USDT',
+          networks: [
+            {
+              networkName: 'ERC20',
+              description: 'Ethereum Network',
+              address: '0xRealUSDTERC20Address',
+              minDeposit: '5',
+              symbol: 'USDT',
+              confirmations: 12,
+              withdrawalUnlocked: 12,
+              qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xRealUSDTERC20Address'
+            },
+            {
+              networkName: 'TRC20',
+              description: 'TRON Network',
+              address: 'TRealUSDTTRC20Address',
+              minDeposit: '5',
+              symbol: 'USDT',
+              confirmations: 20,
+              withdrawalUnlocked: 20,
+              qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TRealUSDTTRC20Address'
+            },
+            {
+              networkName: 'BEP20',
+              description: 'Binance Smart Chain',
+              address: '0xRealUSDTBEP20Address',
+              minDeposit: '5',
+              symbol: 'USDT',
+              confirmations: 15,
+              withdrawalUnlocked: 15,
+              qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xRealUSDTBEP20Address'
+            }
+          ]
+        },
+        ADA: {
+          symbol: 'ADA',
+          networks: [
+            {
+              networkName: 'Cardano',
+              description: 'Cardano Mainnet',
+              address: 'RealADADepositAddress',
+              minDeposit: '10',
+              symbol: 'ADA',
+              confirmations: 1,
+              withdrawalUnlocked: 2,
+              qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=RealADADepositAddress'
+            }
+          ]
+        },
+        SOL: {
+          symbol: 'SOL',
+          networks: [
+            {
+              networkName: 'Solana',
+              description: 'Solana Mainnet',
+              address: 'RealSOLDepositAddress',
+              minDeposit: '0.5',
+              symbol: 'SOL',
+              confirmations: 1,
+              withdrawalUnlocked: 2,
+              qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=RealSOLDepositAddress'
+            }
+          ]
+        },
+        DOT: {
+          symbol: 'DOT',
+          networks: [
+            {
+              networkName: 'Polkadot',
+              description: 'Polkadot Network',
+              address: 'RealDOTDepositAddress',
+              minDeposit: '0.1',
+              symbol: 'DOT',
+              confirmations: 2,
+              withdrawalUnlocked: 2,
+              qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=RealDOTDepositAddress'
+            }
+          ]
+        }
+      };
+
+      // Attach click handler to every crypto item – both frequently used and in the full list.
+      document.querySelectorAll('.crypto-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const symbolElem = item.querySelector('.crypto-symbol');
+          const coinSymbol = symbolElem ? symbolElem.textContent : 'BTC';
+          // Attempt to fetch real deposit data from your backend.
+          fetch(`https://api.yourbackend.com/deposit?coin=${encodeURIComponent(coinSymbol)}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(coinData => {
+              openCoinDepositPage(coinData);
+            })
+            .catch(error => {
+              console.error('Error fetching deposit data:', error);
+              // Fallback: if fallback data exists for this coin, use it.
+              if(fallbackCoinData[coinSymbol]) {
+                openCoinDepositPage(fallbackCoinData[coinSymbol]);
+              } else {
+                alert('Error fetching deposit data. Please try again later.');
+              }
+            });
+        });
+      });
+    });
+  </script>
+</body>
+</html>

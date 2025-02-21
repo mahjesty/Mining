@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Complete Deposit Flow - Real Network Selector with Fallback</title>
+  <title>Complete Deposit Flow - Advanced Wallet Address Page</title>
   <style>
     /* -----------------------------
        GLOBAL STYLES & RESET
@@ -34,7 +34,7 @@
       right: 0;
       background-color: #1a1a1a;
       border-radius: 12px 12px 0 0;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
       overflow-y: auto;
       max-height: 80vh;
       padding-bottom: 1rem;
@@ -164,7 +164,7 @@
       justify-content: center;
       cursor: pointer;
       margin-right: 1rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
       transition: background-color 0.3s;
     }
     .back-btn:hover {
@@ -419,7 +419,7 @@
       }
     }
     /* -----------------------------
-       4) COIN DEPOSIT PAGE
+       4) ADVANCED COIN DEPOSIT PAGE
     ------------------------------ */
     .coin-deposit-page {
       display: none;
@@ -428,20 +428,32 @@
       min-height: 100vh;
       padding-bottom: 2rem;
     }
-    .coin-deposit-page .top-bar {
-      position: sticky;
-      top: 0;
-      background-color: #121212;
-      z-index: 10;
-      padding: 0.5rem 1rem;
+    /* Advanced coin header */
+    .coin-header {
       display: flex;
       align-items: center;
+      padding: 1rem;
+      background-color: #121212;
+      border-bottom: 1px solid #333;
+      margin-bottom: 1rem;
     }
-    .coin-deposit-page .screen-title {
-      font-size: 1rem;
+    .coin-header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 0.75rem;
+      object-fit: cover;
+    }
+    .coin-header h2 {
+      font-size: 1.2rem;
       font-weight: 600;
+      color: #fff;
     }
-    .coin-deposit-page .deposit-content {
+    /* Hide the basic top bar */
+    .coin-deposit-page .top-bar {
+      display: none;
+    }
+    .deposit-content {
       padding: 1rem;
     }
     .qr-code-container {
@@ -449,14 +461,16 @@
       margin-bottom: 1rem;
     }
     .qr-code {
-      width: 200px;
-      height: 200px;
+      width: 220px;
+      height: 220px;
       object-fit: contain;
       background-color: #fff;
-      border-radius: 8px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
     .wallet-address {
       background-color: #1a1a1a;
+      border: 1px solid #333;
       border-radius: 6px;
       padding: 0.75rem;
       margin-bottom: 1rem;
@@ -464,6 +478,7 @@
       align-items: center;
       justify-content: space-between;
       word-break: break-all;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
     }
     .copy-address-btn {
       background-color: #2c2c2c;
@@ -480,6 +495,7 @@
       border-radius: 6px;
       padding: 1rem;
       margin-bottom: 1rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
     }
     .info-row {
       display: flex;
@@ -490,8 +506,8 @@
     .info-label {
       color: #888;
       margin-right: 1rem;
+      font-size: 0.9rem;
     }
-    /* New Change Network button */
     .change-network-btn {
       background-color: #34c759;
       border: none;
@@ -510,6 +526,7 @@
       border-radius: 6px;
       padding: 1rem;
       margin-bottom: 1rem;
+      font-size: 0.9rem;
     }
     .actions {
       display: flex;
@@ -692,6 +709,7 @@
     </div>
     <!-- Main Crypto List (Alphabetical Sections for Coins) -->
     <div class="list-container">
+      <!-- (All coin sections A–Z remain the same as before) -->
       <!-- Section A -->
       <div class="letter-section" id="A">
         <div class="letter-title">A</div>
@@ -1187,12 +1205,12 @@
     </div>
   </div>
 
-  <!-- 4) Coin Deposit Page -->
+  <!-- 4) Advanced Coin Deposit Page -->
   <div class="coin-deposit-page" id="coin-deposit-page">
-    <!-- Top Bar: Back Button + Dynamic Title -->
-    <div class="top-bar">
-      <button class="back-btn" id="deposit-page-back-btn">&#8592;</button>
-      <div class="screen-title" id="coin-deposit-title">Deposit BTC</div>
+    <!-- Advanced Coin Header -->
+    <div class="coin-header" id="coin-header">
+      <img id="coin-icon" src="" alt="Coin Icon" />
+      <h2 id="coin-header-title">Deposit BTC</h2>
     </div>
     <!-- Main Deposit Content -->
     <div class="deposit-content">
@@ -1200,17 +1218,16 @@
       <div class="qr-code-container">
         <img id="coin-qr-code" src="" alt="QR Code" class="qr-code" />
       </div>
-      <!-- Wallet Address & Copy Button -->
+      <!-- Wallet Address Section -->
       <div class="wallet-address">
         <span id="coin-wallet-address">Loading...</span>
         <button class="copy-address-btn" id="copy-coin-address-btn">Copy Address</button>
       </div>
-      <!-- Basic Deposit Info -->
+      <!-- Deposit Details Section -->
       <div class="deposit-info">
         <div class="info-row">
           <span class="info-label">Network:</span>
           <span id="coin-network">Loading...</span>
-          <!-- Change Network Button to reopen the slider -->
           <button class="change-network-btn" id="change-network-btn">Change</button>
         </div>
         <div class="info-row">
@@ -1232,16 +1249,14 @@
       </div>
       <!-- Notice Section -->
       <div class="notice-section">
-        <h3>Notice:</h3>
+        <h3>Important:</h3>
         <p>
-          In upholding the integrity and safety of our platform’s trading environment,
-          we are dedicated to combating financial crime and ensuring compliance with
-          regulations. Always double-check your deposit address before sending.
+          Please verify the deposit address and network details before transferring funds. Deposits may require network confirmations before being credited. If you encounter any issues, contact support immediately.
         </p>
       </div>
       <!-- Action Buttons -->
       <div class="actions">
-        <button class="save-picture-btn" id="save-coin-picture-btn">Save Picture</button>
+        <button class="save-picture-btn" id="save-coin-picture-btn">Save QR Code</button>
         <button class="copy-address-btn" id="copy-coin-address-btn-2">Copy Address</button>
       </div>
     </div>
@@ -1381,10 +1396,12 @@
       });
 
       /****************************************
-       * 5) COIN DEPOSIT PAGE
+       * 5) ADVANCED COIN DEPOSIT PAGE
        ****************************************/
       const coinDepositPage = document.getElementById('coin-deposit-page');
-      const depositPageBackBtn = document.getElementById('deposit-page-back-btn');
+      const coinHeader = document.getElementById('coin-header');
+      const coinIcon = document.getElementById('coin-icon');
+      const coinHeaderTitle = document.getElementById('coin-header-title');
       const coinDepositTitle = document.getElementById('coin-deposit-title');
       const coinQrCode = document.getElementById('coin-qr-code');
       const coinWalletAddress = document.getElementById('coin-wallet-address');
@@ -1393,7 +1410,7 @@
       const coinConfirmations = document.getElementById('coin-confirmations');
       const coinWithdrawalUnlocked = document.getElementById('coin-withdrawal-unlocked');
 
-      depositPageBackBtn.addEventListener('click', () => {
+      document.getElementById('deposit-page-back-btn').addEventListener('click', () => {
         coinDepositPage.style.display = 'none';
         cryptoListContainer.style.display = 'block';
       });
@@ -1405,14 +1422,12 @@
       const networkSliderClose = document.getElementById('network-slider-close');
       const coinNetworkList = document.getElementById('coin-network-list');
 
-      // Close the network slider
       networkSliderClose.addEventListener('click', () => {
         coinNetworksSlider.classList.remove('active');
       });
 
-      // Populate the network slider with available networks for the coin
       function populateNetworkList(networks) {
-        coinNetworkList.innerHTML = ""; // clear existing items
+        coinNetworkList.innerHTML = "";
         networks.forEach(net => {
           const li = document.createElement('li');
           li.innerHTML = `
@@ -1420,7 +1435,6 @@
             <div class="network-desc">${net.description || ''}</div>
           `;
           li.addEventListener('click', () => {
-            // When a network is selected, update deposit info and close slider
             updateDepositFields(net);
             coinNetworksSlider.classList.remove('active');
           });
@@ -1428,7 +1442,6 @@
         });
       }
 
-      // Update the deposit page fields with the chosen network's data
       function updateDepositFields(netData) {
         coinWalletAddress.textContent = netData.address;
         coinNetwork.textContent = netData.networkName;
@@ -1438,22 +1451,19 @@
         coinQrCode.src = netData.qrCodeUrl;
       }
 
-      // Open the coin deposit page with coin data from the backend or fallback
       function openCoinDepositPage(coinData) {
-        // Hide the crypto list and show the deposit page
         cryptoListContainer.style.display = 'none';
         coinDepositPage.style.display = 'block';
 
-        // Set page title
+        coinHeaderTitle.textContent = `Deposit ${coinData.symbol}`;
+        coinIcon.src = coinData.iconUrl || `https://cryptologos.cc/logos/${coinData.symbol.toLowerCase()}-${coinData.symbol.toLowerCase()}-logo.png?v=025`;
+
         coinDepositTitle.textContent = `Deposit ${coinData.symbol}`;
 
-        // Populate the network slider with the coin's networks
         populateNetworkList(coinData.networks || []);
 
-        // Automatically show the network slider when entering the deposit page
         coinNetworksSlider.classList.add('active');
 
-        // Set default deposit info from the first available network
         if (coinData.networks && coinData.networks.length > 0) {
           updateDepositFields(coinData.networks[0]);
         } else {
@@ -1472,8 +1482,7 @@
       /****************************************
        * 7) CHANGE NETWORK BUTTON
        ****************************************/
-      const changeNetworkBtn = document.getElementById('change-network-btn');
-      changeNetworkBtn.addEventListener('click', () => {
+      document.getElementById('change-network-btn').addEventListener('click', () => {
         coinNetworksSlider.classList.add('active');
       });
 
@@ -1492,19 +1501,19 @@
           });
         });
       });
-      const savePictureBtn = document.getElementById('save-coin-picture-btn');
-      savePictureBtn.addEventListener('click', () => {
+      document.getElementById('save-coin-picture-btn').addEventListener('click', () => {
         const qrSrc = coinQrCode.src;
         window.open(qrSrc, '_blank');
       });
 
       /****************************************
-       * 9) REAL NETWORK CALLING VIA FETCH WITH FALLBACK
+       * 9) REAL NETWORK CALL VIA FETCH WITH FALLBACK
        ****************************************/
-      // Define fallback data in case the fetch fails (for frequently used coins)
+      // Define fallback data in case the fetch fails.
       const fallbackCoinData = {
         BTC: {
           symbol: 'BTC',
+          iconUrl: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=025',
           networks: [
             {
               networkName: 'BTC',
@@ -1520,6 +1529,7 @@
         },
         ETH: {
           symbol: 'ETH',
+          iconUrl: 'https://cryptologos.cc/logos/ethereum-eth-logo.png?v=025',
           networks: [
             {
               networkName: 'ERC20',
@@ -1535,6 +1545,7 @@
         },
         USDT: {
           symbol: 'USDT',
+          iconUrl: 'https://cryptologos.cc/logos/tether-usdt-logo.png?v=025',
           networks: [
             {
               networkName: 'ERC20',
@@ -1570,6 +1581,7 @@
         },
         ADA: {
           symbol: 'ADA',
+          iconUrl: 'https://cryptologos.cc/logos/cardano-ada-logo.png?v=025',
           networks: [
             {
               networkName: 'Cardano',
@@ -1585,6 +1597,7 @@
         },
         SOL: {
           symbol: 'SOL',
+          iconUrl: 'https://cryptologos.cc/logos/solana-sol-logo.png?v=025',
           networks: [
             {
               networkName: 'Solana',
@@ -1600,6 +1613,7 @@
         },
         DOT: {
           symbol: 'DOT',
+          iconUrl: 'https://cryptologos.cc/logos/polkadot-new-dot-logo.png?v=025',
           networks: [
             {
               networkName: 'Polkadot',
@@ -1615,12 +1629,15 @@
         }
       };
 
-      // Attach click handler to every crypto item – both frequently used and in the full list.
+      /****************************************
+       * 9) REAL NETWORK CALL VIA FETCH WITH FALLBACK
+       ****************************************/
+      // When a coin is clicked, fetch deposit data from the backend.
+      // Convert the coin symbol to uppercase to match fallback data keys.
       document.querySelectorAll('.crypto-item').forEach(item => {
         item.addEventListener('click', () => {
           const symbolElem = item.querySelector('.crypto-symbol');
-          const coinSymbol = symbolElem ? symbolElem.textContent : 'BTC';
-          // Attempt to fetch real deposit data from your backend.
+          const coinSymbol = (symbolElem ? symbolElem.textContent.trim() : 'BTC').toUpperCase();
           fetch(`https://api.yourbackend.com/deposit?coin=${encodeURIComponent(coinSymbol)}`)
             .then(response => {
               if (!response.ok) {
@@ -1633,7 +1650,6 @@
             })
             .catch(error => {
               console.error('Error fetching deposit data:', error);
-              // Fallback: if fallback data exists for this coin, use it.
               if(fallbackCoinData[coinSymbol]) {
                 openCoinDepositPage(fallbackCoinData[coinSymbol]);
               } else {

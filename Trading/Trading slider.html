@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Trading Panel + Advanced TP/SL Slider</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* -----------------------------
+       1) Basic Reset & Body Styling
+    ----------------------------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #0b0b0b;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    /* -----------------------------
+       2) Main Panel (Trading Page)
+    ----------------------------- */
+    .panel {
+      width: 100%;
+      max-width: 350px;
+      background: #131722;
+      border: 1px solid #262626;
+      border-radius: 6px;
+      padding: 16px;
+      margin: 20px auto;
+      position: relative;
+    }
+    .header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .header-left { display: flex; align-items: center; }
+    .pair-dropdown, .cross-leverage { position: relative; cursor: pointer; }
+    .pair-dropdown .selected, .cross-leverage .selected {
+      font-size: 0.9rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+    .arrow-down {
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 6px solid #fff;
+      margin-left: 4px;
+      transition: transform 0.3s ease;
+    }
+    .pair-dropdown.open .arrow-down,
+    .cross-leverage.open .arrow-down { transform: rotate(180deg); }
+    .percentage {
+      font-size: 0.9rem;
+      font-weight: bold;
+      background: #f6465d;
+      padding: 2px 6px;
+      border-radius: 12px;
+    }
+    /* Dropdown Menus */
+    .dropdown-container { position: relative; cursor: pointer; }
+    .dropdown-menu {
+      position: absolute; top: 100%; left: 0;
+      width: 100%;
+      background: #131722;
+      border: 1px solid #262626;
+      border-radius: 4px;
+      list-style: none;
+      margin-top: 4px;
+      display: none;
+      z-index: 10;
+    }
+    .dropdown-menu li {
+      padding: 8px;
+      font-size: 0.85rem;
+      color: #fff;
+      cursor: pointer;
+    }
+    .dropdown-menu li:hover { background: #2b2b2b; }
+    .available-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .available-row .label, .available-row .value { font-size: 0.85rem; color: #cfcfcf; }
+    .order-type {
+      background: #2b2b2b;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .order-type-arrow {
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 6px solid #fff;
+      transition: transform 0.3s ease;
+    }
+    .order-type.open .order-type-arrow { transform: rotate(180deg); }
+    .input-group { margin-bottom: 12px; }
+    /* Price input has an id for real price retrieval */
+    .input-row input#priceInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      font-size: 0.85rem;
+      color: #fff;
+      outline: none;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 6px 8px;
+    }
+    .unit { margin-left: 8px; font-size: 0.8rem; color: #cfcfcf; }
+    .percentage-slider-container { margin-bottom: 12px; }
+    .percentage-slider-label {
+      text-align: center;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+    .percentage-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #333;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+    }
+    .percentage-slider::-webkit-slider-runnable-track {
+      background: #333;
+      height: 6px;
+      border-radius: 3px;
+      background-image:
+        radial-gradient(circle, #fff 3px, transparent 4px),
+        radial-gradient(circle, #fff 3px, transparent 4px),
+        radial-gradient(circle, #fff 3px, transparent 4px),
+        radial-gradient(circle, #fff 3px, transparent 4px);
+      background-size: 1rem 1rem;
+      background-position: 25% center, 50% center, 75% center, 100% center;
+      background-repeat: no-repeat;
+    }
+    .percentage-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid #fff;
+      margin-top: -5px;
+      cursor: pointer;
+    }
+    .vital-rows { margin-bottom: 8px; font-size: 0.8rem; color: #cfcfcf; }
+    .vital-rows .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .calculate-btn {
+      background: #2b2b2b;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: #cfcfcf;
+      font-weight: bold;
+    }
+    .checkbox-row { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-right: 16px;
+      margin-bottom: 4px;
+    }
+    .checkbox-group input[type="checkbox"] {
+      -webkit-appearance: none;
+         -moz-appearance: none;
+              appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid #262626;
+      background: #1e1e1e;
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+    .checkbox-group input[type="checkbox"]:checked {
+      background: #0ecb81;
+      border: 1px solid #0ecb81;
+    }
+    .checkbox-group input[type="checkbox"]:checked::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 0;
+      width: 4px;
+      height: 8px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    .checkbox-group label { font-size: 0.8rem; cursor: pointer; margin-left: 4px; }
+    .button-row { display: flex; justify-content: space-between; margin-top: 8px; }
+    .btn {
+      width: 48%;
+      padding: 8px 0;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-long { background: #0ecb81; color: #fff; }
+    .btn-short { background: #f6465d; color: #fff; }
+    .tp-sl-inline {
+      margin-left: 125px;
+      margin-bottom: 25px;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .plus-button { background: none; border: none; padding: 0; margin-right: 8px; cursor: pointer; }
+    .plus-icon {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      line-height: 18px;
+      border: 1px solid #0ecb81;
+      border-radius: 50%;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #0ecb81;
+      font-weight: bold;
+    }
+    .tp-sl-label { font-size: 0.85rem; font-weight: bold; }
+    
+    /* -----------------------------
+       Advanced TP/SL Slider Overlay
+       (Centered container; not edge-to-edge; non-scrollable)
+    ----------------------------- */
+    .slider-overlay {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 0;
+      background: rgba(0, 0, 0, 0.75);
+      transition: height 0.3s ease;
+      z-index: 9999;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .slider-overlay.active { height: 70vh; }
+    .slider-panel {
+      background: #131722;
+      border-top: 2px solid #0ecb81;
+      border-radius: 12px 12px 0 0;
+      width: 100%;
+      max-width: 350px;
+      margin: 0 20px;
+      padding: 24px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.8);
+      overflow: hidden; /* Non-scrollable */
+      display: flex;
+      flex-direction: column;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .slider-title { font-size: 1.2rem; font-weight: bold; }
+    .close-btn { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; }
+    .slider-info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+      color: #cfcfcf;
+    }
+    .slider-info-value { color: #fff; font-weight: bold; }
+    
+    /* Long/Short Toggle Buttons (Advanced Overlay) */
+    .toggle-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .toggle-container button {
+      padding: 18px 36px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      margin: 0 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      background: #1e1e1e;
+      color: #fff;
+    }
+    .toggle-container button.active.toggle-long {
+      background: #0ecb81;
+      color: #000;
+    }
+    .toggle-container button.active.toggle-short {
+      background: #f6465d;
+      color: #fff;
+    }
+    
+    .entire-position-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+    }
+    .entire-position-row input { margin-right: 8px; cursor: pointer; }
+    
+    .slider-block { margin-bottom: 24px; }
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+    /* Slider range with side margins */
+    .slider-range {
+      -webkit-appearance: none;
+      width: calc(100% - 40px);
+      margin: 0 20px;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    .slider-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid #fff;
+      cursor: pointer;
+    }
+    .explanation-text {
+      font-size: 0.8rem;
+      color: #cfcfcf;
+      margin-top: 8px;
+      line-height: 1.4;
+      text-align: center;
+      padding: 0 20px;
+    }
+    .highlight-profit { color: #0ecb81; }
+    .highlight-loss { color: #f6465d; }
+    .confirm-btn {
+      width: calc(100% - 40px);
+      background: #0ecb81;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      padding: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0 20px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main Trading Panel (First Page) -->
+  <div class="panel">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="pair-dropdown dropdown-container">
+          <div class="selected" id="pairDisplay">
+            ltc/usdt <div class="arrow-down"></div>
+          </div>
+          <ul class="dropdown-menu" id="pairDropdown">
+            <li data-value="ltc/usdt">ltc/usdt</li>
+            <li data-value="btc/usdt">btc/usdt</li>
+            <li data-value="eth/usdt">eth/usdt</li>
+          </ul>
+        </div>
+        <div class="percentage">-5.16%</div>
+      </div>
+      <div class="cross-leverage dropdown-container">
+        <div class="selected" id="leverageDisplay">
+          Cross 10x <div class="arrow-down"></div>
+        </div>
+        <ul class="dropdown-menu" id="leverageDropdown">
+          <li data-value="Cross 10x">Cross 10x</li>
+          <li data-value="Cross 20x">Cross 20x</li>
+          <li data-value="Isolated 10x">Isolated 10x</li>
+          <li data-value="Isolated 20x">Isolated 20x</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Available Balance -->
+    <div class="available-row">
+      <div class="label">Available</div>
+      <div class="value">0.0000 USDT</div>
+    </div>
+    <!-- Order Type -->
+    <div class="order-type dropdown-container" id="orderTypeContainer">
+      <span class="order-type-text" id="orderTypeDisplay">Limit</span>
+      <div class="order-type-arrow"></div>
+      <ul class="dropdown-menu" id="orderTypeDropdown">
+        <li data-value="Limit">Limit</li>
+        <li data-value="Market">Market</li>
+        <li data-value="Stop-Limit">Stop-Limit</li>
+      </ul>
+    </div>
+    <!-- Price Input (Real Price Input) -->
+    <div class="input-group">
+      <div class="input-row">
+        <input id="priceInput" type="number" placeholder="Price" />
+        <div class="unit">USDT</div>
+      </div>
+    </div>
+    <!-- Quantity Input -->
+    <div class="input-group">
+      <div class="input-row">
+        <input type="number" placeholder="Quantity" />
+        <div class="unit" id="quantityUnit">LTC</div>
+      </div>
+    </div>
+    <!-- Percentage Slider (Main Panel; can be used to simulate trade percentage if needed) -->
+    <div class="percentage-slider-container">
+      <div class="percentage-slider-label" id="percentageLabel">0%</div>
+      <input type="range" class="percentage-slider" min="0" max="100" step="1" value="0" id="percentageSlider" />
+    </div>
+    <!-- Vital Rows -->
+    <div class="vital-rows">
+      <div class="row">
+        <span>Value</span>
+        <span>0/0USDT</span>
+      </div>
+      <div class="row">
+        <span>Cost</span>
+        <span>0/0USDT</span>
+      </div>
+      <div class="row">
+        <span>Liq. Price</span>
+        <button class="calculate-btn">Calculate</button>
+      </div>
+    </div>
+    <!-- TP/SL Inline Element -->
+    <div class="tp-sl-inline" id="tpSlInline">
+      <button class="plus-button">
+        <span class="plus-icon">+</span>
+      </button>
+      <span class="tp-sl-label">TP/SL</span>
+    </div>
+    <!-- Checkboxes -->
+    <div class="checkbox-row">
+      <div class="checkbox-group">
+        <input type="checkbox" id="postOnly" />
+        <label for="postOnly">Post-Only</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="gtc" />
+        <label for="gtc">GTC</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="reduceOnly" />
+        <label for="reduceOnly">Reduce-Only</label>
+      </div>
+    </div>
+    <!-- Long/Short Buttons -->
+    <div class="button-row">
+      <button class="btn btn-long">Long</button>
+      <button class="btn btn-short">Short</button>
+    </div>
+  </div>
+
+  <!-- Advanced TP/SL Slider Overlay (Advanced Page) -->
+  <div class="slider-overlay" id="sliderOverlay">
+    <div class="slider-panel">
+      <!-- Slider Header -->
+      <div class="slider-header">
+        <div class="slider-title">Add TP/SL</div>
+        <button class="close-btn" id="closeTpslBtn">&times;</button>
+      </div>
+      <!-- Info Rows (populated from Price input) -->
+      <div class="slider-info-row">
+        <div>Order Price</div>
+        <div class="slider-info-value" id="sliderOrderPrice">--</div>
+      </div>
+      <div class="slider-info-row">
+        <div>Qty</div>
+        <div class="slider-info-value" id="sliderQty">1</div>
+      </div>
+      <div class="slider-info-row">
+        <div>Market Price</div>
+        <div class="slider-info-value" id="sliderMarketPrice">--</div>
+      </div>
+      <div class="slider-info-row">
+        <div>Estimated Liq. Price</div>
+        <div class="slider-info-value" id="sliderLiqPrice">--</div>
+      </div>
+      <!-- Long/Short Toggle as Two Large Buttons -->
+      <div class="toggle-container">
+        <button class="toggle-long active" id="toggleLong">Long</button>
+        <button class="toggle-short" id="toggleShort">Short</button>
+      </div>
+      <!-- Entire Position Row -->
+      <div class="entire-position-row">
+        <input type="checkbox" id="entirePosition" />
+        <label for="entirePosition">Entire Position</label>
+      </div>
+      <!-- Take Profit Slider -->
+      <div class="slider-block">
+        <div class="slider-label-row">
+          <div>Take Profit-Trigger by ROI (%)</div>
+          <div id="tpRoiLabel">+30.0%</div>
+        </div>
+        <input type="range" class="slider-range" id="tpSlider" min="0" max="150" step="1" value="30" />
+        <div class="explanation-text" id="tpExplanation">
+          Market Take Profit order will be triggered when Market Price reaches 
+          <span class="highlight-profit" id="tpPriceValue">--</span> USDT.
+          Expected profit: <span class="highlight-profit" id="tpProfitValue">--</span>
+          (ROI <span class="highlight-profit" id="tpRoiText">+30.0%</span>)
+        </div>
+      </div>
+      <!-- Stop Loss Slider -->
+      <div class="slider-block">
+        <div class="slider-label-row">
+          <div>Stop Loss-Trigger by ROI (%)</div>
+          <div id="slRoiLabel">-30.0%</div>
+        </div>
+        <input type="range" class="slider-range" id="slSlider" min="-100" max="0" step="1" value="-30" />
+        <div class="explanation-text" id="slExplanation">
+          Market Stop Loss order will be triggered when Market Price reaches 
+          <span class="highlight-loss" id="slPriceValue">--</span> USDT.
+          Expected loss: <span class="highlight-loss" id="slLossValue">--</span>
+          (ROI <span class="highlight-loss" id="slRoiText">-30.0%</span>)
+        </div>
+      </div>
+      <!-- Confirm Button -->
+      <button class="confirm-btn" id="confirmBtn">Confirm</button>
+    </div>
+  </div>
+
+  <script>
+    // Global variable for the current market price (from Price input)
+    let currentMarketPrice = 1.00;
+    
+    // Utility: Close All Dropdowns
+    function closeAllDropdowns(except) {
+      const dropdowns = [
+        document.getElementById('orderTypeDropdown'),
+        document.getElementById('leverageDropdown'),
+        document.getElementById('pairDropdown')
+      ];
+      dropdowns.forEach(dropdown => {
+        if (dropdown !== except) {
+          dropdown.style.display = 'none';
+        }
+      });
+      document.querySelector('.order-type').classList.remove('open');
+      document.querySelector('.pair-dropdown').classList.remove('open');
+      document.querySelector('.cross-leverage').classList.remove('open');
+    }
+    
+    // Trading Pair Dropdown
+    const pairContainer = document.querySelector('.pair-dropdown');
+    const pairDisplay = document.getElementById('pairDisplay');
+    const pairDropdown = document.getElementById('pairDropdown');
+    const quantityUnit = document.getElementById('quantityUnit');
+    pairDisplay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (pairDropdown.style.display === 'block') {
+        pairDropdown.style.display = 'none';
+        pairContainer.classList.remove('open');
+      } else {
+        closeAllDropdowns(pairDropdown);
+        pairDropdown.style.display = 'block';
+        pairContainer.classList.add('open');
+      }
+    });
+    pairDropdown.addEventListener('click', (e) => {
+      if (e.target.tagName === 'LI') {
+        const pairValue = e.target.getAttribute('data-value');
+        pairDisplay.innerHTML = pairValue + ' <div class="arrow-down"></div>';
+        pairDropdown.style.display = 'none';
+        pairContainer.classList.remove('open');
+        const coin = pairValue.split('/')[0].toUpperCase();
+        quantityUnit.innerText = coin;
+      }
+    });
+    
+    // Order Type Dropdown
+    const orderTypeContainer = document.getElementById('orderTypeContainer');
+    const orderTypeDisplay = document.getElementById('orderTypeDisplay');
+    const orderTypeDropdown = document.getElementById('orderTypeDropdown');
+    orderTypeContainer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (orderTypeDropdown.style.display === 'block') {
+        orderTypeDropdown.style.display = 'none';
+        orderTypeContainer.classList.remove('open');
+      } else {
+        closeAllDropdowns(orderTypeDropdown);
+        orderTypeDropdown.style.display = 'block';
+        orderTypeContainer.classList.add('open');
+      }
+    });
+    orderTypeDropdown.addEventListener('click', (e) => {
+      if (e.target.tagName === 'LI') {
+        orderTypeDisplay.innerText = e.target.getAttribute('data-value');
+        orderTypeDropdown.style.display = 'none';
+        orderTypeContainer.classList.remove('open');
+      }
+    });
+    
+    // Leverage Dropdown
+    const leverageContainer = document.querySelector('.cross-leverage');
+    const leverageDisplay = document.getElementById('leverageDisplay');
+    const leverageDropdown = document.getElementById('leverageDropdown');
+    leverageDisplay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (leverageDropdown.style.display === 'block') {
+        leverageDropdown.style.display = 'none';
+        leverageContainer.classList.remove('open');
+      } else {
+        closeAllDropdowns(leverageDropdown);
+        leverageDropdown.style.display = 'block';
+        leverageContainer.classList.add('open');
+      }
+    });
+    leverageDropdown.addEventListener('click', (e) => {
+      if (e.target.tagName === 'LI') {
+        leverageDisplay.innerHTML = e.target.getAttribute('data-value') + ' <div class="arrow-down"></div>';
+        leverageDropdown.style.display = 'none';
+        leverageContainer.classList.remove('open');
+      }
+    });
+    
+    // Outside Click Closes Dropdowns
+    document.addEventListener('click', () => { closeAllDropdowns(); });
+    
+    // Percentage Slider Loader (Main Panel)
+    const percentageSlider = document.getElementById('percentageSlider');
+    const percentageLabel = document.getElementById('percentageLabel');
+    percentageSlider.addEventListener('input', (e) => {
+      percentageLabel.textContent = e.target.value + '%';
+    });
+    percentageLabel.textContent = percentageSlider.value + '%';
+    
+    // When TP/SL is clicked, update the real market price from the Price input
+    const priceInput = document.getElementById('priceInput');
+    const sliderOrderPrice = document.getElementById('sliderOrderPrice');
+    const sliderMarketPrice = document.getElementById('sliderMarketPrice');
+    tpSlInline.addEventListener('click', () => {
+      currentMarketPrice = parseFloat(priceInput.value) || 1.00;
+      // Update overlay info rows with real price data
+      sliderOrderPrice.innerText = priceInput.value || "--";
+      sliderMarketPrice.innerText = currentMarketPrice.toFixed(2);
+      
+      // Reset ROI sliders to default values
+      tpSlider.value = 30;
+      slSlider.value = -30;
+      updateTp();
+      updateSl();
+      
+      // Show overlay
+      sliderOverlay.classList.add('active');
+    });
+    
+    // Slider Overlay Controls
+    const sliderOverlay = document.getElementById('sliderOverlay');
+    const closeTpslBtn = document.getElementById('closeTpslBtn');
+    closeTpslBtn.addEventListener('click', () => { sliderOverlay.classList.remove('active'); });
+    
+    // ROI Sliders in Overlay
+    const tpSlider = document.getElementById('tpSlider');
+    const slSlider = document.getElementById('slSlider');
+    const tpRoiLabel = document.getElementById('tpRoiLabel');
+    const slRoiLabel = document.getElementById('slRoiLabel');
+    // The following elements are part of the explanation text:
+    const tpPriceValue = document.getElementById('tpPriceValue');
+    const slPriceValue = document.getElementById('slPriceValue');
+    const tpProfitValue = document.getElementById('tpProfitValue');
+    const slLossValue = document.getElementById('slLossValue');
+    const tpRoiText = document.getElementById('tpRoiText');
+    const slRoiText = document.getElementById('slRoiText');
+    
+    function formatNumber(num, decimals = 2) {
+      return parseFloat(num.toFixed(decimals));
+    }
+    
+    function updateTp() {
+      const roiValue = parseFloat(tpSlider.value);
+      tpRoiLabel.textContent = `+${roiValue.toFixed(1)}%`;
+      tpRoiText.textContent = `+${roiValue.toFixed(1)}%`;
+      const newPrice = currentMarketPrice * (1 + roiValue / 100);
+      tpPriceValue.textContent = formatNumber(newPrice, 2);
+      const profit = newPrice - currentMarketPrice;
+      tpProfitValue.textContent = formatNumber(profit, 4) + ' USDT';
+    }
+    
+    function updateSl() {
+      const roiValue = parseFloat(slSlider.value);
+      slRoiLabel.textContent = `${roiValue.toFixed(1)}%`;
+      slRoiText.textContent = `${roiValue.toFixed(1)}%`;
+      const newPrice = currentMarketPrice * (1 + roiValue / 100);
+      slPriceValue.textContent = formatNumber(newPrice, 2);
+      const loss = currentMarketPrice - newPrice;
+      slLossValue.textContent = formatNumber(loss, 4) + ' USDT';
+    }
+    
+    updateTp();
+    updateSl();
+    tpSlider.addEventListener('input', updateTp);
+    slSlider.addEventListener('input', updateSl);
+    
+    // Confirm Button in Overlay
+    const confirmBtn = document.getElementById('confirmBtn');
+    confirmBtn.addEventListener('click', () => {
+      alert('TP/SL confirmed (demo).');
+      sliderOverlay.classList.remove('active');
+    });
+    
+    // Long/Short Toggle in Overlay (Two Large Buttons)
+    const toggleLong = document.getElementById('toggleLong');
+    const toggleShort = document.getElementById('toggleShort');
+    toggleLong.addEventListener('click', () => {
+      toggleLong.classList.add('active');
+      toggleShort.classList.remove('active');
+    });
+    toggleShort.addEventListener('click', () => {
+      toggleShort.classList.add('active');
+      toggleLong.classList.remove('active');
+    });
+  </script>
+</body>
+</html>

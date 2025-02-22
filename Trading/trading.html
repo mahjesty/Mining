@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Ensure device compatibility -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trading Panel</title>
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #0b0b0b;
+      font-family: sans-serif;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    /* Responsive Panel Container */
+    .panel {
+      width: 90%;
+      max-width: 350px;
+      background-color: #131722;
+      border: 1px solid #262626;
+      border-radius: 6px;
+      padding: 16px;
+      position: relative;
+      margin: 0 auto;
+    }
+    /* Header: Trading Pair, Percent Bar, and Leverage */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+    }
+    /* Trading Pair Dropdown */
+    .pair-dropdown {
+      position: relative;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+    .pair-dropdown .selected {
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+    .pair-dropdown .arrow-down {
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 6px solid #fff;
+      margin-left: 4px;
+      transition: transform 0.3s ease;
+    }
+    .pair-dropdown.open .arrow-down {
+      transform: rotate(180deg);
+    }
+    /* Percent Bar styled as a pill */
+    .percentage {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #fff;
+      background-color: #f6465d;
+      padding: 2px 6px;
+      border-radius: 12px;
+    }
+    /* Dropdown container for Leverage and others */
+    .dropdown-container {
+      position: relative;
+      cursor: pointer;
+    }
+    /* Leverage / Cross 10x */
+    .cross-leverage .selected {
+      display: flex;
+      align-items: center;
+      background-color: #2b2b2b;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .cross-leverage .selected .arrow-down {
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 6px solid #fff;
+      margin-left: 4px;
+      transition: transform 0.3s ease;
+    }
+    .cross-leverage.open .selected .arrow-down {
+      transform: rotate(180deg);
+    }
+    /* Order Type container with arrow on the far right */
+    .order-type {
+      background-color: #2b2b2b;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .order-type .order-type-text {
+      /* Left side text */
+    }
+    .order-type-arrow {
+      /* Arrow on the far right */
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 6px solid #fff;
+      transition: transform 0.3s ease;
+    }
+    /* When open, rotate the arrow */
+    .order-type.open .order-type-arrow {
+      transform: rotate(180deg);
+    }
+    /* Dropdown Menu */
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: #131722;
+      border: 1px solid #262626;
+      border-radius: 4px;
+      display: none;
+      z-index: 100;
+      list-style: none;
+      margin-top: 4px;
+    }
+    .dropdown-menu li {
+      padding: 8px;
+      font-size: 0.85rem;
+      color: #fff;
+      cursor: pointer;
+    }
+    .dropdown-menu li:hover {
+      background-color: #2b2b2b;
+    }
+    /* Available Row */
+    .available-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .available-row .label,
+    .available-row .value {
+      font-size: 0.85rem;
+      color: #cfcfcf;
+    }
+    /* Input Groups (Price / Quantity) */
+    .input-group {
+      margin-bottom: 12px;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      background-color: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 6px 8px;
+    }
+    .input-row input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      font-size: 0.85rem;
+      color: #fff;
+      outline: none;
+    }
+    /* Price unit remains "USDT" while the quantity unit will update */
+    .unit {
+      margin-left: 8px;
+      font-size: 0.8rem;
+      color: #cfcfcf;
+    }
+    /* Assign an id to quantity unit for dynamic updating */
+    #quantityUnit {
+      /* Initially "LTC" from "ltc/usdt" */
+    }
+    /* Slider */
+    .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      outline: none;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      border: 1px solid #fff;
+    }
+    /* Vital Rows: Value, Cost, Liq. Price */
+    .vital-rows {
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      color: #cfcfcf;
+    }
+    .vital-rows .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .calculate-btn {
+      background-color: #2b2b2b;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: #cfcfcf;
+      font-weight: bold;
+    }
+    /* TP/SL Container with Advanced Toggle (no outer border) */
+    .tp-sl-container {
+      border: none;
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+    .tp-sl-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tp-sl-header .plus-icon {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      line-height: 18px;
+      border: 1px solid #cfcfcf;
+      border-radius: 50%;
+      text-align: center;
+      font-size: 0.75rem;
+      margin-right: 4px;
+      color: #cfcfcf;
+    }
+    .tp-sl-header span.tp-sl-text {
+      font-size: 0.85rem;
+      color: #fff;
+    }
+    /* Advanced TP/SL inputs (initially hidden) */
+    .tp-sl-advanced {
+      display: none;
+      margin-top: 8px;
+    }
+    /* Custom Checkbox Styling */
+    .checkbox-group input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid #262626;
+      background-color: #1e1e1e;
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+    .checkbox-group input[type="checkbox"]:checked {
+      background-color: #0ecb81;
+      border: 1px solid #0ecb81;
+    }
+    .checkbox-group input[type="checkbox"]:checked::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 0px;
+      width: 4px;
+      height: 8px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    .checkbox-group label {
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+    /* Buttons for Long / Short */
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+    .btn {
+      width: 48%;
+      padding: 8px 0;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      outline: none;
+    }
+    .btn-long {
+      background-color: #0ecb81;
+      color: #fff;
+    }
+    .btn-short {
+      background-color: #f6465d;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <!-- Header: Trading Pair, Percent Bar, and Leverage -->
+    <div class="header">
+      <div class="header-left">
+        <!-- Trading Pair Dropdown -->
+        <div class="pair-dropdown dropdown-container">
+          <div class="selected" id="pairDisplay">
+            ltc/usdt <div class="arrow-down"></div>
+          </div>
+          <ul class="dropdown-menu" id="pairDropdown">
+            <li data-value="ltc/usdt">ltc/usdt</li>
+            <li data-value="btc/usdt">btc/usdt</li>
+            <li data-value="eth/usdt">eth/usdt</li>
+          </ul>
+        </div>
+        <!-- Percent Bar -->
+      </div>
+      <!-- Leverage Dropdown -->
+      <div class="cross-leverage dropdown-container">
+        <div class="selected" id="leverageDisplay">
+          Cross 10x <div class="arrow-down"></div>
+        </div>
+        <ul class="dropdown-menu" id="leverageDropdown">
+          <li data-value="Cross 10x">Cross 10x</li>
+          <li data-value="Cross 20x">Cross 20x</li>
+          <li data-value="Isolated 10x">Isolated 10x</li>
+          <li data-value="Isolated 20x">Isolated 20x</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Available Balance -->
+    <div class="available-row">
+      <div class="label">Available</div>
+      <div class="value">0.0000 USDT</div>
+    </div>
+
+    <!-- Order Type Dropdown with arrow at the far right -->
+    <div class="order-type dropdown-container" id="orderTypeContainer">
+      <span class="order-type-text" id="orderTypeDisplay">Limit</span>
+      <div class="order-type-arrow"></div>
+      <ul class="dropdown-menu" id="orderTypeDropdown">
+        <li data-value="Limit">Limit</li>
+        <li data-value="Market">Market</li>
+        <li data-value="Stop-Limit">Stop-Limit</li>
+      </ul>
+    </div>
+
+    <!-- Price Input -->
+    <div class="input-group">
+      <div class="input-row">
+        <input type="number" placeholder="Price" />
+        <div class="unit">USDT</div>
+      </div>
+    </div>
+
+    <!-- Quantity Input (unit updates dynamically) -->
+    <div class="input-group">
+      <div class="input-row">
+        <input type="number" placeholder="Quantity" />
+        <div class="unit" id="quantityUnit">LTC</div>
+      </div>
+    </div>
+
+    <!-- Slider -->
+    <input type="range" class="slider" min="0" max="100" value="0" />
+
+    <!-- Vital Rows: Value, Cost, Liq. Price -->
+    <div class="vital-rows">
+      <div class="row">
+        <span>Value</span>
+        <span>0/0USDT</span>
+      </div>
+      <div class="row">
+        <span>Cost</span>
+        <span>0/0USDT</span>
+      </div>
+      <div class="row">
+        <span>Liq. Price</span>
+        <button class="calculate-btn">Calculate</button>
+      </div>
+    </div>
+
+    <!-- TP/SL Container with Advanced Toggle (no outer border) -->
+    <div class="tp-sl-container">
+      <div class="tp-sl-header" id="tpSlHeader">
+        <span class="plus-icon">+</span>
+        <span class="tp-sl-text">TP/SL</span>
+      </div>
+
+    <!-- Other Checkboxes: Post-Only, GTC, Reduce-Only -->
+    <div class="checkbox-row">
+      <div class="checkbox-group">
+        <input type="checkbox" id="postOnly" />
+        <label for="postOnly">Post-Only</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="gtc" />
+        <label for="gtc">GTC</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="reduceOnly" />
+        <label for="reduceOnly">Reduce-Only</label>
+      </div>
+    </div>
+
+    <!-- Long / Short Buttons -->
+    <div class="button-row">
+      <button class="btn btn-long">Long</button>
+      <button class="btn btn-short">Short</button>
+    </div>
+  </div>
+
+  <script>
+    // Utility: Close all dropdowns except one optionally passed
+    function closeAllDropdowns(except) {
+      const dropdowns = [
+        document.getElementById('orderTypeDropdown'),
+        document.getElementById('leverageDropdown'),
+        document.getElementById('pairDropdown')
+      ];
+      dropdowns.forEach(dropdown => {
+        if (dropdown !== except) {
+          dropdown.style.display = 'none';
+        }
+      });
+      // Remove "open" classes from all dropdown containers
+      document.querySelector('.order-type').classList.remove('open');
+      document.querySelector('.pair-dropdown').classList.remove('open');
+      document.querySelector('.cross-leverage').classList.remove('open');
+    }
+
+    // Trading Pair Dropdown Toggle
+    const pairContainer = document.querySelector('.pair-dropdown');
+    const pairDisplay = document.getElementById('pairDisplay');
+    const pairDropdown = document.getElementById('pairDropdown');
+    const quantityUnit = document.getElementById('quantityUnit');
+    pairDisplay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (pairDropdown.style.display === 'block') {
+        pairDropdown.style.display = 'none';
+        pairContainer.classList.remove('open');
+      } else {
+        closeAllDropdowns(pairDropdown);
+        pairDropdown.style.display = 'block';
+        pairContainer.classList.add('open');
+      }
+    });
+    pairDropdown.addEventListener('click', (e) => {
+      if (e.target.tagName === 'LI') {
+        const pairValue = e.target.getAttribute('data-value'); // e.g., "btc/usdt"
+        pairDisplay.innerHTML = pairValue + ' <div class="arrow-down"></div>';
+        pairDropdown.style.display = 'none';
+        pairContainer.classList.remove('open');
+        // Update quantity unit to the coin before the slash, in uppercase.
+        const coin = pairValue.split('/')[0].toUpperCase();
+        quantityUnit.innerText = coin;
+      }
+    });
+
+    // Order Type Dropdown Toggle with arrow rotation
+    const orderTypeContainer = document.getElementById('orderTypeContainer');
+    const orderTypeDisplay = document.getElementById('orderTypeDisplay');
+    const orderTypeDropdown = document.getElementById('orderTypeDropdown');
+    orderTypeContainer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (orderTypeDropdown.style.display === 'block') {
+        orderTypeDropdown.style.display = 'none';
+        orderTypeContainer.classList.remove('open');
+      } else {
+        closeAllDropdowns(orderTypeDropdown);
+        orderTypeDropdown.style.display = 'block';
+        orderTypeContainer.classList.add('open');
+      }
+    });
+    orderTypeDropdown.addEventListener('click', (e) => {
+      if (e.target.tagName === 'LI') {
+        orderTypeDisplay.innerText = e.target.getAttribute('data-value');
+        orderTypeDropdown.style.display = 'none';
+        orderTypeContainer.classList.remove('open');
+      }
+    });
+
+    // Leverage Dropdown Toggle
+    const leverageContainer = document.querySelector('.cross-leverage');
+    const leverageDisplay = document.getElementById('leverageDisplay');
+    const leverageDropdown = document.getElementById('leverageDropdown');
+    leverageDisplay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (leverageDropdown.style.display === 'block') {
+        leverageDropdown.style.display = 'none';
+        leverageContainer.classList.remove('open');
+      } else {
+        closeAllDropdowns(leverageDropdown);
+        leverageDropdown.style.display = 'block';
+        leverageContainer.classList.add('open');
+      }
+    });
+    leverageDropdown.addEventListener('click', (e) => {
+      if (e.target.tagName === 'LI') {
+        leverageDisplay.innerHTML = e.target.getAttribute('data-value') + ' <div class="arrow-down"></div>';
+        leverageDropdown.style.display = 'none';
+        leverageContainer.classList.remove('open');
+      }
+    });
+
+    // Hide dropdowns when clicking outside
+    document.addEventListener('click', () => {
+      closeAllDropdowns();
+    });
+
+    // TP/SL Advanced Toggle
+    const tpSlHeader = document.getElementById('tpSlHeader');
+    const tpSlAdvanced = document.getElementById('tpSlAdvanced');
+    tpSlHeader.addEventListener('click', () => {
+      tpSlAdvanced.style.display = tpSlAdvanced.style.display === 'block' ? 'none' : 'block';
+    });
+  </script>
+</body>
+</html>

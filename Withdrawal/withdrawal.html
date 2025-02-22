@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assets & Withdraw</title>
+  <style>
+    /* Basic Reset & Theme Variables */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    :root {
+      --bg-color: #000;
+      --text-color: #fff;
+      --secondary-color: #999;
+      --accent-color: #00B37F;
+      --border-color: #333;
+      --card-bg: #111;
+      --error-color: #ff5555;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .hidden { display: none; }
+    .container {
+      width: 95%;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .error-message {
+      color: var(--error-color);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    
+    /* ASSET PAGE */
+    #assetsPage { z-index: 1; }
+    .assets-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .assets-header .header-left {
+      display: flex;
+      align-items: center;
+    }
+    .back-arrow {
+      font-size: 20px;
+      margin-right: 8px;
+      color: var(--text-color);
+      cursor: pointer;
+    }
+    .logo {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+    .portfolio-value {
+      font-size: 14px;
+      color: var(--secondary-color);
+    }
+    .search-bar { margin-bottom: 16px; }
+    .search-bar input {
+      width: 100%;
+      padding: 10px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--text-color);
+      outline: none;
+    }
+    .search-bar input::placeholder { color: var(--secondary-color); }
+    .asset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .asset-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--card-bg);
+      padding: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .asset-item:hover { background-color: #222; }
+    .asset-info { display: flex; align-items: center; }
+    .asset-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin-right: 8px;
+      object-fit: contain;
+    }
+    .asset-name { font-weight: 500; }
+    .asset-balance { font-size: 14px; color: var(--secondary-color); }
+    
+    /* WITHDRAWAL PAGE */
+    #withdrawPage { z-index: 1; }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .header-title { font-size: 16px; font-weight: 600; }
+    .tabs {
+      display: flex;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+      color: var(--secondary-color);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .tab.active {
+      color: var(--text-color);
+      font-weight: 600;
+      border-bottom: 2px solid var(--accent-color);
+    }
+    .label { font-size: 14px; margin-bottom: 4px; font-weight: 500; }
+    .coin-container { margin-bottom: 10px; }
+    .coin-row {
+      display: flex;
+      align-items: center;
+      background-color: var(--card-bg);
+      padding: 12px;
+      border-radius: 6px;
+    }
+    .coin-label {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+    .coin-label img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+    .onchain-content,
+    .internal-transfer-content { }
+    .onchain-content .input-row,
+    .onchain-content .select-row,
+    .onchain-content .amount-row {
+      background-color: var(--card-bg);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      border: 1px solid transparent;
+    }
+    .onchain-content .input-row input,
+    .onchain-content .select-row select,
+    .onchain-content .amount-row input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+    .onchain-content .select-row select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 24px;
+      color: var(--secondary-color);
+    }
+    .onchain-content .select-row::after {
+      content: '▼';
+      position: absolute;
+      right: 12px;
+      font-size: 10px;
+      color: var(--secondary-color);
+      pointer-events: none;
+    }
+    .onchain-content .address-book-btn {
+      margin-left: 8px;
+      color: var(--secondary-color);
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .onchain-content .max-btn {
+      margin-left: 8px;
+      color: var(--accent-color);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .internal-transfer-content .input-row,
+    .internal-transfer-content .amount-row {
+      background-color: var(--card-bg);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      border: 1px solid transparent;
+    }
+    .internal-transfer-content .input-row input,
+    .internal-transfer-content .amount-row input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+    .internal-transfer-content .input-row input::placeholder,
+    .internal-transfer-content .amount-row input::placeholder {
+      color: var(--secondary-color);
+    }
+    .internal-transfer-content .address-book-btn {
+      margin-left: 8px;
+      color: var(--secondary-color);
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .internal-transfer-content .max-btn {
+      margin-left: 8px;
+      color: var(--accent-color);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .info-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--secondary-color);
+    }
+    .info-line span { color: var(--text-color); }
+    .withdraw-btn {
+      width: 100%;
+      background-color: var(--accent-color);
+      color: #000;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .withdraw-btn:disabled {
+      background-color: #333;
+      color: #888;
+      cursor: not-allowed;
+    }
+    .withdraw-btn:hover { filter: brightness(1.1); }
+    
+    /* Email Verification Page */
+    #emailVerificationPage {
+      text-align: center;
+    }
+    #emailVerificationPage h2 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+    #emailVerificationPage p {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #ccc;
+    }
+    #emailVerificationPage input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-color);
+      font-size: 14px;
+    }
+    #emailVerificationPage button {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--accent-color);
+      color: #000;
+      transition: background 0.3s;
+    }
+    #emailVerificationPage button:hover {
+      background: #00a669;
+    }
+    #emailVerificationPage .verification-error {
+      color: var(--error-color);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    
+    /* Processing Modal (Full-Screen Binance-Style) */
+    #processingModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 13000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+      color: var(--text-color);
+    }
+    #processingModal .spinner {
+      border: 8px solid #333;
+      border-top: 8px solid var(--accent-color);
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    #processingModal h2 {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    #processingModal p {
+      font-size: 16px;
+      margin-bottom: 20px;
+      color: #ccc;
+    }
+    /* Final Processing Content */
+    #processingModal .final-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      padding: 20px;
+      position: relative;
+    }
+    .final-checkmark {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px auto;
+      font-size: 48px;
+      color: #fff;
+    }
+    .final-message {
+      margin-bottom: 60px;
+      font-size: 16px;
+      color: #ccc;
+    }
+    .final-buttons {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .final-buttons button {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--accent-color);
+      color: #000;
+      transition: background 0.3s;
+    }
+    .final-buttons button:hover {
+      background: #00a669;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Slider Overlay */
+    .slider-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+    }
+    
+    /* Confirm Slider */
+    .confirm-slider {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translate(-50%, 100%);
+      width: 100%;
+      max-width: 420px;
+      background-color: var(--card-bg);
+      padding: 16px;
+      border-top: 2px solid var(--accent-color);
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      box-shadow: 0px -4px 8px rgba(0, 0, 0, 0.8);
+      transition: transform 0.3s ease-in-out;
+      z-index: 10000;
+    }
+    .confirm-slider.visible {
+      transform: translate(-50%, 0);
+    }
+    .slider-summary {
+      margin-bottom: 16px;
+    }
+    .slider-summary p {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .slider-buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+    .slider-buttons button {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-back { background-color: #555; color: #fff; }
+    .btn-confirm { background-color: var(--accent-color); color: #000; }
+    
+    /* Wizard Modal */
+    .wizard-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 11000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: opacity 0.3s ease-in-out;
+      opacity: 0;
+    }
+    .wizard-modal.visible {
+      display: flex;
+      opacity: 1;
+    }
+    .wizard-container {
+      background: #1e1e1e;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      text-align: left;
+      color: #fff;
+    }
+    .wizard-container h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .wizard-container p {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #ccc;
+    }
+    .wizard-options {
+      margin-bottom: 10px;
+    }
+    .wizard-options label {
+      display: block;
+      background: #2a2a2a;
+      padding: 10px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 14px;
+      color: #fff;
+    }
+    .wizard-options label:hover {
+      background: #333;
+    }
+    .wizard-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .wizard-buttons button {
+      padding: 10px 15px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--accent-color);
+      color: #000;
+      transition: background 0.3s;
+    }
+    .wizard-buttons button:hover {
+      background: #00a669;
+    }
+    
+    /* Decline Modal */
+    .decline-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 12000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: opacity 0.3s ease-in-out;
+      opacity: 0;
+    }
+    .decline-modal.visible {
+      display: flex;
+      opacity: 1;
+    }
+    .decline-container {
+      background: #1e1e1e;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      text-align: left;
+      color: #fff;
+    }
+    .decline-container h2 {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+    .decline-container p {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #ccc;
+    }
+    .decline-container .decline-details {
+      font-size: 14px;
+      margin-bottom: 12px;
+      background: #2a2a2a;
+      padding: 10px;
+      border-radius: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .decline-container .decline-buttons {
+      text-align: right;
+    }
+    .decline-container .decline-buttons button {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--accent-color);
+      color: #000;
+      transition: background 0.3s;
+    }
+    .decline-container .decline-buttons button:hover {
+      background: #00a669;
+    }
+    
+    /* Responsive Adjustments */
+    @media (min-width: 768px) {
+      .container { max-width: 720px; }
+      body { font-size: 16px; }
+      .assets-header .logo { font-size: 24px; }
+      .header-title { font-size: 20px; }
+      #emailVerificationPage h2 { font-size: 24px; }
+      #processingModal h2 { font-size: 28px; }
+    }
+    @media (min-width: 1024px) {
+      .container { max-width: 960px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ASSET PAGE -->
+  <div id="assetsPage" class="container">
+    <div class="assets-header">
+      <div class="header-left">
+        <div class="back-arrow" id="assetsBackArrow">&#8592;</div>
+        <div class="logo">MyCrypto</div>
+      </div>
+      <div class="portfolio-value">Portfolio Value: $12,345.67</div>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search asset..." />
+    </div>
+    <div class="asset-list" id="assetList">
+      <!-- Asset items will be loaded here -->
+    </div>
+  </div>
+
+  <!-- WITHDRAWAL PAGE -->
+  <div id="withdrawPage" class="container hidden">
+    <div class="header">
+      <div style="display: flex; align-items: center;">
+        <div class="back-arrow" id="backArrow">&#8592;</div>
+        <div class="header-title">Withdraw</div>
+      </div>
+      <div style="width: 24px;"></div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" id="onChainTab">On-Chain</div>
+      <div class="tab" id="internalTransferTab">Internal Transfer</div>
+    </div>
+    <!-- On-Chain Content -->
+    <div class="onchain-content" id="onChainContent">
+      <div class="coin-container">
+        <div class="coin-row">
+          <div class="coin-label">
+            <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=014" id="onChainCoinLogo" alt="Coin Logo" />
+            <span id="onChainCoinName">ETH Ethereum</span>
+          </div>
+        </div>
+      </div>
+      <div class="label">Address</div>
+      <div class="input-row">
+        <input type="text" placeholder="Input or press and hold to paste the withdrawal address" id="onChainAddress" />
+        <div class="address-book-btn" id="onChainAddressBookBtn">Address Book</div>
+      </div>
+      <div class="label">Network</div>
+      <div class="select-row">
+        <select id="onChainNetworkSelect">
+          <option value="">Please choose a chain type</option>
+          <option value="Ethereum">Ethereum</option>
+          <option value="BSC">BSC</option>
+          <option value="Tron">Tron</option>
+          <option value="Polygon">Polygon</option>
+          <option value="Bitcoin">Bitcoin</option>
+        </select>
+      </div>
+      <div class="label">Amount (Raise Amount)</div>
+      <div class="amount-row">
+        <input type="number" min="0" step="any" placeholder="0" id="onChainAmount" />
+        <div class="max-btn" id="onChainMaxBtn">Max</div>
+      </div>
+      <div id="onChainError" class="error-message"></div>
+      <div class="info-line">
+        <div>Min. Withdrawal Amount:</div>
+        <div><span id="onChainMin">0.01 ETH</span></div>
+      </div>
+      <div class="info-line">
+        <div>Funding Account:</div>
+        <div><span id="onChainBalance">2.13 ETH</span></div>
+      </div>
+      <div class="info-line">
+        <div>Daily Remaining Limit:</div>
+        <div><span>1,000,000/1,000,000 USDT</span></div>
+      </div>
+      <div class="info-line">
+        <div>Withdrawal Fees:</div>
+        <div><span id="onChainFees">0.001 ETH</span></div>
+      </div>
+      <div class="info-line">
+        <div>Amount Received:</div>
+        <div><span id="onChainReceived">0 ETH</span></div>
+      </div>
+      <button class="withdraw-btn" id="onChainWithdrawBtn" disabled>Withdraw</button>
+    </div>
+    <!-- Internal Transfer Content -->
+    <div class="internal-transfer-content hidden" id="internalTransferContent">
+      <div class="coin-container">
+        <div class="coin-row">
+          <div class="coin-label">
+            <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=014" id="internalCoinLogo" alt="Coin Logo" />
+            <span id="internalCoinName">ETH</span>
+          </div>
+        </div>
+      </div>
+      <div class="label">Recipient Account</div>
+      <div class="radio-group">
+        <label>
+          <input type="radio" name="recipientType" value="email" checked />
+          Email
+        </label>
+        <label>
+          <input type="radio" name="recipientType" value="mobile" />
+          Mobile
+        </label>
+        <label>
+          <input type="radio" name="recipientType" value="uid" />
+          UID
+        </label>
+      </div>
+      <div class="input-container">
+        <div class="input-row">
+          <input type="text" placeholder="Enter your Gmail address" id="internalRecipient" />
+          <div class="address-book-btn" id="internalAddressBookBtn">Address Book</div>
+        </div>
+        <div id="internalRecipientError" class="error-message"></div>
+      </div>
+      <div class="label">Amount (Raise Amount)</div>
+      <div class="input-container">
+        <div class="amount-row">
+          <input type="number" min="0" step="any" placeholder="0" id="internalAmount" />
+          <div class="max-btn" id="internalMaxBtn">Max</div>
+        </div>
+        <div id="internalAmountError" class="error-message"></div>
+      </div>
+      <div class="info-line">
+        <div>Min. Withdrawal Amount:</div>
+        <div><span id="internalMin">0.007 ETH</span></div>
+      </div>
+      <div class="info-line">
+        <div>Note:</div>
+        <div><span>Daily Remaining Limit: 1,000,000/1,000,000 USDT</span></div>
+      </div>
+      <div class="info-line" style="margin-bottom: 10px;">
+        <div></div>
+        <div>
+          <span class="help-link">Need help? Please visit our Help Center.</span>
+        </div>
+      </div>
+      <div class="info-line">
+        <div>Withdrawal Fees:</div>
+        <div><span id="internalFees">Zero Fees</span></div>
+      </div>
+      <div class="info-line">
+        <div>Amount Received:</div>
+        <div><span id="internalReceived">0 ETH</span></div>
+      </div>
+      <button class="withdraw-btn" id="internalWithdrawBtn" disabled>Withdraw</button>
+    </div>
+  </div>
+
+  <!-- Email Verification Page -->
+  <div id="emailVerificationPage" class="container hidden">
+    <h2>Email Verification</h2>
+    <p>Please enter the 6-digit verification code sent to your email.</p>
+    <input type="text" id="verificationCode" placeholder="Enter code" maxlength="6" />
+    <div id="verificationError" class="verification-error"></div>
+    <button id="verifyBtn">Verify Code</button>
+  </div>
+
+  <!-- Processing Modal (Full-Screen Binance-Style) -->
+  <div id="processingModal" class="hidden">
+    <div class="spinner"></div>
+    <h2>Processing Withdrawal</h2>
+    <p>Your withdrawal request is being processed on Binance. Please wait...</p>
+  </div>
+
+  <!-- Final Processing Content (After Loader) -->
+  <div id="finalProcessingContent" class="hidden">
+    <div class="final-content">
+      <div class="final-checkmark">✔</div>
+      <div class="final-message">
+        <p>Your withdrawal has been processed successfully.</p>
+        <p>Please check your email for further updates.</p>
+      </div>
+      <div class="final-buttons">
+        <button id="backHomeBtn">Back to Home</button>
+        <button id="viewAssetBtn">View Asset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slider Overlay -->
+  <div id="sliderOverlay" class="slider-overlay hidden"></div>
+
+  <!-- Confirm Slider -->
+  <div id="confirmSlider" class="confirm-slider hidden">
+    <div class="slider-summary" id="confirmSummary">
+      <!-- Summary will be populated here -->
+    </div>
+    <div class="slider-buttons">
+      <button class="btn-back" id="sliderBackBtn">Back</button>
+      <button class="btn-confirm" id="sliderConfirmBtn">Confirm</button>
+    </div>
+  </div>
+
+  <!-- Scam Detection Wizard Modal -->
+  <div id="wizardModal" class="wizard-modal hidden">
+    <div class="wizard-container">
+      <div id="wizardContent">
+        <!-- Wizard page content will be rendered here -->
+      </div>
+      <div class="wizard-buttons" id="wizardButtons">
+        <button class="wizard-btn-back" id="wizardBackBtn">Back</button>
+        <button class="wizard-btn-next" id="wizardNextBtn">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decline Modal -->
+  <div id="declineModal" class="decline-modal hidden">
+    <div class="decline-container">
+      <h2>Transaction Declined</h2>
+      <p>Your withdrawal request has been declined due to responses that raise concerns about its authenticity. Please review the details below and contact our support team if you believe this decision is in error.</p>
+      <div class="decline-details" id="declineDetails">
+        <!-- Decline details will be displayed here -->
+      </div>
+      <div class="decline-buttons">
+        <button id="declineCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /****************************************************
+     * SAMPLE ASSET DATA (Non-Zero Balance Assets)
+     ****************************************************/
+    const assets = [
+      { name: "ETH", fullName: "Ethereum", balance: 2.13, minWithdrawal: "0.01 ETH", fee: "0.001 ETH", icon: "https://cryptologos.cc/logos/ethereum-eth-logo.png?v=014" },
+      { name: "BTC", fullName: "Bitcoin", balance: 0.5, minWithdrawal: "0.0001 BTC", fee: "0.0005 BTC", icon: "https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=014" },
+      { name: "USDT", fullName: "Tether", balance: 1200.45, minWithdrawal: "10 USDT", fee: "1 USDT", icon: "https://cryptologos.cc/logos/tether-usdt-logo.png?v=014" },
+      { name: "MATIC", fullName: "Polygon", balance: 150, minWithdrawal: "1 MATIC", fee: "0.1 MATIC", icon: "https://cryptologos.cc/logos/polygon-matic-logo.png?v=014" }
+    ];
+    let selectedAsset = null;
+    let currentWizardStep = 0;
+    let wizardResponses = {};
+    function resetTransaction() {
+      selectedAsset = null;
+      wizardResponses = {};
+      currentWizardStep = 0;
+      onChainAddress.value = "";
+      onChainAmount.value = "";
+      onChainNetworkSel.value = "";
+      onChainError.textContent = "";
+      onChainReceived.textContent = "0";
+      internalRecipient.value = "";
+      internalAmount.value = "";
+      internalRecipientError.textContent = "";
+      internalAmountError.textContent = "";
+      document.getElementById("verificationCode").value = "";
+      document.getElementById("verificationError").textContent = "";
+    }
+    
+    /****************************************************
+     * PAGE ELEMENTS
+     ****************************************************/
+    const assetsPage = document.getElementById("assetsPage");
+    const assetList = document.getElementById("assetList");
+    const searchInput = document.getElementById("searchInput");
+    const assetsBackArrow = document.getElementById("assetsBackArrow");
+    const withdrawPage = document.getElementById("withdrawPage");
+    const backArrow = document.getElementById("backArrow");
+    const onChainTab = document.getElementById("onChainTab");
+    const internalTab = document.getElementById("internalTransferTab");
+    const onChainContent = document.getElementById("onChainContent");
+    const internalContent = document.getElementById("internalTransferContent");
+    const onChainCoinName = document.getElementById("onChainCoinName");
+    const onChainCoinLogo = document.getElementById("onChainCoinLogo");
+    const onChainAddress = document.getElementById("onChainAddress");
+    const onChainNetworkSel = document.getElementById("onChainNetworkSelect");
+    const onChainAmount = document.getElementById("onChainAmount");
+    const onChainMaxBtn = document.getElementById("onChainMaxBtn");
+    const onChainMin = document.getElementById("onChainMin");
+    const onChainBalance = document.getElementById("onChainBalance");
+    const onChainFees = document.getElementById("onChainFees");
+    const onChainReceived = document.getElementById("onChainReceived");
+    const onChainWithdraw = document.getElementById("onChainWithdrawBtn");
+    const onChainError = document.getElementById("onChainError");
+    const internalCoinName = document.getElementById("internalCoinName");
+    const internalCoinLogo = document.getElementById("internalCoinLogo");
+    const internalRecipient = document.getElementById("internalRecipient");
+    const internalAddressBtn = document.getElementById("internalAddressBookBtn");
+    const internalAmount = document.getElementById("internalAmount");
+    const internalMaxBtn = document.getElementById("internalMaxBtn");
+    const internalMin = document.getElementById("internalMin");
+    const internalFees = document.getElementById("internalFees");
+    const internalReceived = document.getElementById("internalReceived");
+    const internalWithdraw = document.getElementById("internalWithdrawBtn");
+    const internalRecipientError = document.getElementById("internalRecipientError");
+    const internalAmountError = document.getElementById("internalAmountError");
+    const emailVerificationPage = document.getElementById("emailVerificationPage");
+    const verifyBtn = document.getElementById("verifyBtn");
+    const verificationError = document.getElementById("verificationError");
+    const processingModal = document.getElementById("processingModal");
+    const finalProcessingContent = document.getElementById("finalProcessingContent");
+    const sliderOverlay = document.getElementById("sliderOverlay");
+    const confirmSlider = document.getElementById("confirmSlider");
+    const confirmSummary = document.getElementById("confirmSummary");
+    const sliderBackBtn = document.getElementById("sliderBackBtn");
+    const sliderConfirmBtn = document.getElementById("sliderConfirmBtn");
+    const wizardModal = document.getElementById("wizardModal");
+    const wizardContent = document.getElementById("wizardContent");
+    const wizardButtons = document.getElementById("wizardButtons");
+    const wizardBackBtn = document.getElementById("wizardBackBtn");
+    const wizardNextBtn = document.getElementById("wizardNextBtn");
+    const declineModal = document.getElementById("declineModal");
+    const declineDetails = document.getElementById("declineDetails");
+    const declineCloseBtn = document.getElementById("declineCloseBtn");
+    
+    /****************************************************
+     * ASSET PAGE FUNCTIONS
+     ****************************************************/
+    function loadAssets() {
+      assetList.innerHTML = "";
+      const filtered = assets.filter(a => a.balance > 0);
+      const query = searchInput.value.trim().toLowerCase();
+      const results = query
+        ? filtered.filter(a => a.name.toLowerCase().includes(query) || a.fullName.toLowerCase().includes(query))
+        : filtered;
+      results.forEach(asset => {
+        const row = document.createElement("div");
+        row.classList.add("asset-item");
+        row.innerHTML = `
+          <div class="asset-info">
+            <img class="asset-logo" src="${asset.icon}" alt="${asset.name} logo" />
+            <div class="asset-name">${asset.name} (${asset.fullName})</div>
+          </div>
+          <div class="asset-balance">${asset.balance} ${asset.name}</div>
+        `;
+        row.addEventListener("click", () => {
+          redirectToWithdrawPage(asset);
+        });
+        assetList.appendChild(row);
+      });
+    }
+    searchInput.addEventListener("input", loadAssets);
+    loadAssets();
+    assetsBackArrow.addEventListener("click", () => { window.history.back(); });
+    function redirectToWithdrawPage(asset) {
+      selectedAsset = asset;
+      assetsPage.classList.add("hidden");
+      withdrawPage.classList.remove("hidden");
+      onChainTab.classList.add("active");
+      internalTab.classList.remove("active");
+      onChainContent.classList.remove("hidden");
+      internalContent.classList.add("hidden");
+      populateOnChain(asset);
+      populateInternalTransfer(asset);
+    }
+    
+    /****************************************************
+     * WITHDRAWAL PAGE TABS
+     ****************************************************/
+    onChainTab.onclick = () => {
+      onChainTab.classList.add("active");
+      internalTab.classList.remove("active");
+      onChainContent.classList.remove("hidden");
+      internalContent.classList.add("hidden");
+    };
+    internalTab.onclick = () => {
+      internalTab.classList.add("active");
+      onChainTab.classList.remove("active");
+      internalContent.classList.remove("hidden");
+      onChainContent.classList.add("hidden");
+    };
+    backArrow.addEventListener("click", () => {
+      withdrawPage.classList.add("hidden");
+      assetsPage.classList.remove("hidden");
+    });
+    
+    /****************************************************
+     * ON-CHAIN FUNCTIONS
+     ****************************************************/
+    function populateOnChain(asset) {
+      onChainCoinName.textContent = `${asset.name} ${asset.fullName}`;
+      onChainCoinLogo.src = asset.icon;
+      onChainCoinLogo.alt = asset.name;
+      onChainMin.textContent = asset.minWithdrawal;
+      onChainBalance.textContent = `${asset.balance} ${asset.name}`;
+      onChainFees.textContent = asset.fee;
+      onChainReceived.textContent = `0 ${asset.name}`;
+      onChainAddress.value = "";
+      onChainNetworkSel.value = "";
+      onChainAmount.value = "";
+      onChainWithdraw.disabled = true;
+      onChainError.textContent = "";
+    }
+    function validateOnChain() {
+      if (!selectedAsset) return;
+      const addr = onChainAddress.value.trim();
+      const net = onChainNetworkSel.value.trim();
+      const amt = parseFloat(onChainAmount.value) || 0;
+      let valid = true;
+      if (!addr || !net || amt <= 0) valid = false;
+      if (selectedAsset.name === "ETH") {
+        const ethRegex = /^0x[a-fA-F0-9]{40}$/;
+        if (!ethRegex.test(addr)) valid = false;
+      }
+      const minWithdrawalVal = parseFloat(selectedAsset.minWithdrawal);
+      if (amt < minWithdrawalVal) {
+        valid = false;
+        onChainError.textContent = `Minimum withdrawal is ${selectedAsset.minWithdrawal}`;
+      } else {
+        onChainError.textContent = "";
+      }
+      onChainWithdraw.disabled = !valid;
+      const feeVal = parseFloat(selectedAsset.fee) || 0;
+      const netAmount = amt > feeVal ? amt - feeVal : 0;
+      onChainReceived.textContent = `${netAmount.toFixed(6)} ${selectedAsset.name}`;
+    }
+    onChainAddress.addEventListener("input", validateOnChain);
+    onChainNetworkSel.addEventListener("change", validateOnChain);
+    onChainAmount.addEventListener("input", validateOnChain);
+    onChainMaxBtn.addEventListener("click", () => {
+      if (!selectedAsset) return;
+      onChainAmount.value = selectedAsset.balance;
+      validateOnChain();
+    });
+    onChainWithdraw.addEventListener("click", () => {
+      showConfirmSlider();
+    });
+    document.getElementById("onChainAddressBookBtn").addEventListener("click", async () => {
+      if (confirm("Do you want to paste from clipboard?")) {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          try {
+            const text = await navigator.clipboard.readText();
+            onChainAddress.value = text;
+            validateOnChain();
+          } catch (err) {
+            alert("Failed to read clipboard contents: " + err);
+          }
+        } else {
+          alert("Clipboard API not supported in this browser.");
+        }
+      }
+    });
+    
+    /****************************************************
+     * INTERNAL TRANSFER FUNCTIONS
+     ****************************************************/
+    function populateInternalTransfer(asset) {
+      internalCoinName.textContent = asset.name;
+      internalCoinLogo.src = asset.icon;
+      internalCoinLogo.alt = asset.name;
+      internalMin.textContent = asset.name === "ETH" ? "0.007 ETH" : asset.minWithdrawal;
+      internalFees.textContent = "Zero Fees";
+      internalReceived.textContent = `0 ${asset.name}`;
+      internalRecipient.value = "";
+      internalAmount.value = "";
+      internalWithdraw.disabled = true;
+      internalRecipientError.textContent = "";
+      internalAmountError.textContent = "";
+    }
+    function validateInternal() {
+      if (!selectedAsset) return;
+      const rec = internalRecipient.value.trim();
+      const amt = parseFloat(internalAmount.value) || 0;
+      let recValid = true, amtValid = true;
+      let recError = "", amtError = "";
+      if (!rec) {
+        recValid = false;
+        recError = "Recipient is required";
+      } else {
+        const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
+        if (recipientType === "email" && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(rec)) {
+          recValid = false;
+          recError = "Please enter a valid Gmail address";
+        } else if (recipientType === "mobile" && !/^\d+$/.test(rec)) {
+          recValid = false;
+          recError = "Mobile number must contain digits only";
+        } else if (recipientType === "uid" && !/^[a-zA-Z0-9]+$/.test(rec)) {
+          recValid = false;
+          recError = "UID must be alphanumeric";
+        }
+      }
+      if (amt <= 0) {
+        amtValid = false;
+        amtError = "Amount must be greater than 0";
+      } else {
+        const minWithdrawalVal = parseFloat(internalMin.textContent);
+        if (amt < minWithdrawalVal) {
+          amtValid = false;
+          amtError = `Minimum withdrawal is ${internalMin.textContent}`;
+        }
+      }
+      internalWithdraw.disabled = !(recValid && amtValid);
+      internalReceived.textContent = `${amt.toFixed(6)} ${selectedAsset.name}`;
+      internalRecipientError.textContent = recError;
+      internalAmountError.textContent = amtError;
+    }
+    internalRecipient.addEventListener("input", validateInternal);
+    internalAmount.addEventListener("input", validateInternal);
+    internalMaxBtn.addEventListener("click", () => {
+      if (!selectedAsset) return;
+      internalAmount.value = selectedAsset.balance;
+      validateInternal();
+    });
+    internalWithdraw.addEventListener("click", () => {
+      showConfirmSlider();
+    });
+    internalAddressBtn.addEventListener("click", async () => {
+      if (confirm("Do you want to paste from clipboard?")) {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          try {
+            const text = await navigator.clipboard.readText();
+            const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
+            if (recipientType === "email" && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(text)) {
+              alert("Clipboard content is not a valid Gmail address.");
+              return;
+            } else if (recipientType === "mobile" && !/^\d+$/.test(text)) {
+              alert("Clipboard content must contain digits only for mobile.");
+              return;
+            } else if (recipientType === "uid" && !/^[a-zA-Z0-9]+$/.test(text)) {
+              alert("Clipboard content must be alphanumeric for UID.");
+              return;
+            }
+            internalRecipient.value = text;
+            validateInternal();
+          } catch (err) {
+            alert("Failed to read clipboard contents: " + err);
+          }
+        } else {
+          alert("Clipboard API not supported in this browser.");
+        }
+      }
+    });
+    Array.from(document.getElementsByName("recipientType")).forEach(radio => {
+      radio.addEventListener("change", () => {
+        if (radio.checked) {
+          if (radio.value === "email") {
+            internalRecipient.placeholder = "Enter your Gmail address";
+            internalRecipient.type = "email";
+          } else if (radio.value === "mobile") {
+            internalRecipient.placeholder = "Enter your mobile number";
+            internalRecipient.type = "tel";
+          } else if (radio.value === "uid") {
+            internalRecipient.placeholder = "Enter UID";
+            internalRecipient.type = "text";
+          }
+          validateInternal();
+        }
+      });
+    });
+    
+    /****************************************************
+     * SLIDER & OVERLAY LOGIC
+     ****************************************************/
+    function showConfirmSlider() {
+      let summaryHTML = "";
+      if (!onChainContent.classList.contains("hidden")) {
+        summaryHTML += `<p><strong>Type:</strong> On-Chain Withdrawal</p>`;
+        summaryHTML += `<p><strong>Coin:</strong> ${onChainCoinName.textContent}</p>`;
+        summaryHTML += `<p><strong>Address:</strong> ${onChainAddress.value}</p>`;
+        summaryHTML += `<p><strong>Network:</strong> ${onChainNetworkSel.value}</p>`;
+        summaryHTML += `<p><strong>Amount:</strong> ${onChainAmount.value} ${selectedAsset.name}</p>`;
+        summaryHTML += `<p><strong>Fee:</strong> ${onChainFees.textContent}</p>`;
+        summaryHTML += `<p><strong>Amount Received:</strong> ${onChainReceived.textContent}</p>`;
+      } else if (!internalContent.classList.contains("hidden")) {
+        const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
+        summaryHTML += `<p><strong>Type:</strong> Internal Transfer</p>`;
+        summaryHTML += `<p><strong>Coin:</strong> ${internalCoinName.textContent}</p>`;
+        summaryHTML += `<p><strong>Recipient Type:</strong> ${recipientType.toUpperCase()}</p>`;
+        summaryHTML += `<p><strong>Recipient:</strong> ${internalRecipient.value}</p>`;
+        summaryHTML += `<p><strong>Amount:</strong> ${internalAmount.value} ${selectedAsset.name}</p>`;
+        summaryHTML += `<p><strong>Fee:</strong> ${internalFees.textContent}</p>`;
+        summaryHTML += `<p><strong>Amount Received:</strong> ${internalReceived.textContent}</p>`;
+      }
+      confirmSummary.innerHTML = summaryHTML;
+      sliderOverlay.classList.remove("hidden");
+      confirmSlider.classList.remove("hidden");
+      setTimeout(() => {
+        confirmSlider.classList.add("visible");
+      }, 10);
+    }
+    function hideConfirmSlider(callback) {
+      confirmSlider.classList.remove("visible");
+      setTimeout(() => {
+        confirmSlider.classList.add("hidden");
+        sliderOverlay.classList.add("hidden");
+        if (callback) callback();
+      }, 300);
+    }
+    sliderOverlay.addEventListener("click", () => { hideConfirmSlider(); });
+    sliderBackBtn.addEventListener("click", () => { hideConfirmSlider(); });
+    sliderConfirmBtn.addEventListener("click", () => {
+      hideConfirmSlider(() => { showWizardModal(); });
+    });
+    
+    /****************************************************
+     * SCAM DETECTION WIZARD
+     ****************************************************/
+    const wizardSteps = [
+      {
+        title: "Step 1: Account Verification",
+        questions: [
+          { text: "Have you personally initiated this withdrawal request?", name: "initiated", options: ["Yes", "No"] },
+          { text: "Do you confirm that this request originates from your authenticated account?", name: "personalAccount", options: ["Yes", "No"] },
+          { text: "Have you reviewed your recent account activity for any discrepancies?", name: "reviewHistory", options: ["Yes", "No"] },
+          { text: "Is the withdrawal amount as per your records?", name: "amountAccuracy", options: ["Yes", "No"] }
+        ]
+      },
+      {
+        title: "Step 2: External Communication",
+        questions: [
+          { text: "Have you been contacted by any third party regarding this withdrawal?", name: "externalContact", options: ["No", "Yes"] },
+          { text: "Were any urgent instructions provided by an external source?", name: "urgentInstructions", options: ["No", "Yes"] },
+          { text: "Did you experience any pressure to modify your withdrawal details?", name: "pressureToChange", options: ["No", "Yes"] },
+          { text: "Do all communications regarding this transaction appear authentic?", name: "authenticCommunication", options: ["Yes", "No"] }
+        ]
+      },
+      {
+        title: "Step 3: Investment & Risk Assessment",
+        questions: [
+          { text: "Is this withdrawal associated with any investment scheme?", name: "investmentScheme", options: ["No", "Yes"] },
+          { text: "Have you been promised unusually high returns for this transaction?", name: "highReturns", options: ["No", "Yes"] },
+          { text: "Were any guarantees of profit provided with minimal risk?", name: "profitGuarantee", options: ["No", "Yes"] },
+          { text: "Have you obtained independent verification of the transaction’s legitimacy?", name: "independentVerification", options: ["Yes", "No"] }
+        ]
+      },
+      {
+        title: "Step 4: Final Confirmation",
+        questions: [
+          { text: "Are you fully satisfied with all details of this withdrawal?", name: "finalSatisfaction", options: ["Yes", "No"] },
+          { text: "Have you cross-checked all transaction details for accuracy?", name: "crossChecked", options: ["Yes", "No"] },
+          { text: "Do you consent to proceed with this transaction given the associated risks?", name: "consentToProceed", options: ["Yes", "No"] },
+          { text: "Would you advise a colleague to undertake a similar transaction?", name: "recommendation", options: ["Yes", "No"] }
+        ]
+      }
+    ];
+    function updateWizardNextButton() {
+      const currentStep = wizardSteps[currentWizardStep];
+      let allAnswered = true;
+      currentStep.questions.forEach(q => {
+        if (!wizardResponses[q.name]) { allAnswered = false; }
+      });
+      wizardNextBtn.disabled = !allAnswered;
+    }
+    function renderWizardStep() {
+      const step = wizardSteps[currentWizardStep];
+      let stepHtml = `<div class="wizard-container"><h2>${step.title}</h2>`;
+      step.questions.forEach(q => {
+        stepHtml += `<div class="question">${q.text}</div>`;
+        stepHtml += '<div class="wizard-options">';
+        q.options.forEach(option => {
+          const isChecked = (wizardResponses[q.name] === option) ? "checked" : "";
+          stepHtml += `<label><input type="radio" name="${q.name}" value="${option}" ${isChecked} onclick="storeWizardResponse('${q.name}', '${option}')"> ${option}</label>`;
+        });
+        stepHtml += '</div>';
+      });
+      stepHtml += `</div>`;
+      wizardContent.innerHTML = stepHtml;
+      wizardBackBtn.disabled = false;
+      wizardNextBtn.innerText = (currentWizardStep === wizardSteps.length - 1) ? "Confirm Withdrawal" : "Next";
+      updateWizardNextButton();
+    }
+    function storeWizardResponse(name, value) {
+      wizardResponses[name] = value;
+      updateWizardNextButton();
+      checkWizardWarnings();
+    }
+    function checkWizardWarnings() {
+      let warning = "";
+      if (wizardResponses["initiated"] === "No") warning = "Warning: You did not initiate this withdrawal.";
+      if (wizardResponses["externalContact"] === "Yes") warning = "Warning: External contact detected.";
+      if (wizardResponses["profitGuarantee"] === "Yes") warning = "Warning: Profit guarantee with minimal risk is suspicious.";
+      if (wizardResponses["consentToProceed"] === "No") warning = "Warning: You have not consented to proceed.";
+      console.log(warning);
+    }
+    function showWizardModal() {
+      currentWizardStep = 0;
+      wizardResponses = {};
+      renderWizardStep();
+      wizardModal.classList.remove("hidden");
+      setTimeout(() => { wizardModal.classList.add("visible"); }, 10);
+    }
+    function hideWizardModal(callback) {
+      wizardModal.classList.remove("visible");
+      setTimeout(() => {
+        wizardModal.classList.add("hidden");
+        if (callback) callback();
+      }, 300);
+    }
+    wizardNextBtn.addEventListener("click", () => {
+      if (currentWizardStep === wizardSteps.length - 1) {
+        if (wizardResponses["initiated"] === "No" ||
+            wizardResponses["urgentInstructions"] === "Yes" ||
+            wizardResponses["profitGuarantee"] === "Yes" ||
+            wizardResponses["consentToProceed"] === "No") {
+          hideWizardModal(() => { showDeclineModal(); });
+        } else {
+          hideWizardModal(() => { showEmailVerificationPage(); });
+        }
+      } else {
+        currentWizardStep++;
+        renderWizardStep();
+      }
+    });
+    wizardBackBtn.addEventListener("click", () => {
+      if (currentWizardStep > 0) {
+        currentWizardStep--;
+        renderWizardStep();
+      } else {
+        hideWizardModal(() => { showConfirmSlider(); });
+      }
+    });
+    
+    /****************************************************
+     * EMAIL VERIFICATION FUNCTIONS
+     ****************************************************/
+    function showEmailVerificationPage() {
+      withdrawPage.classList.add("hidden");
+      emailVerificationPage.classList.remove("hidden");
+    }
+    verifyBtn.addEventListener("click", () => {
+      const code = document.getElementById("verificationCode").value.trim();
+      if (code === "123456") {
+        emailVerificationPage.classList.add("hidden");
+        showProcessingModal();
+      } else {
+        verificationError.textContent = "Invalid verification code. Please try again.";
+      }
+    });
+    
+    /****************************************************
+     * PROCESSING MODAL FUNCTIONS (NO White Flash)
+     ****************************************************/
+    function showProcessingModal() {
+      processingModal.classList.remove("hidden");
+      processingModal.style.display = "flex";
+      processingModal.innerHTML = `
+        <div class="spinner"></div>
+        <h2>Processing Withdrawal</h2>
+        <p>Your withdrawal request is being processed on Binance. Please wait...</p>
+      `;
+      // Simulate processing delay (approx 4 seconds)
+      setTimeout(() => {
+        // Directly replace content with final processing content (no flash)
+        processingModal.innerHTML = `
+          <div class="final-content">
+            <div class="final-checkmark">✔</div>
+            <div class="final-message">
+              <p>Your withdrawal has been processed successfully.</p>
+              <p>Please check your email for further updates.</p>
+            </div>
+            <div class="final-buttons">
+              <button id="backHomeBtn">Back to Home</button>
+              <button id="viewAssetBtn">View Asset</button>
+            </div>
+          </div>
+        `;
+        document.getElementById("backHomeBtn").addEventListener("click", () => {
+          processingModal.style.display = "none";
+          resetTransaction();
+          assetsPage.classList.remove("hidden");
+        });
+        document.getElementById("viewAssetBtn").addEventListener("click", () => {
+          processingModal.style.display = "none";
+          resetTransaction();
+          withdrawPage.classList.remove("hidden");
+        });
+      }, 4000);
+    }
+    
+    /****************************************************
+     * DECLINE MODAL FUNCTIONS
+     ****************************************************/
+    function showDeclineModal() {
+      let declineHTML = "";
+      if (!onChainContent.classList.contains("hidden")) {
+        declineHTML += `<p><strong>Withdrawal Type:</strong> On-Chain</p>`;
+        declineHTML += `<p><strong>Coin:</strong> ${onChainCoinName.textContent}</p>`;
+        declineHTML += `<p><strong>Address:</strong> ${onChainAddress.value}</p>`;
+        declineHTML += `<p><strong>Network:</strong> ${onChainNetworkSel.value}</p>`;
+        declineHTML += `<p><strong>Amount:</strong> ${onChainAmount.value} ${selectedAsset.name}</p>`;
+        declineHTML += `<p><strong>Fee:</strong> ${onChainFees.textContent}</p>`;
+        declineHTML += `<p><strong>Amount Received:</strong> ${onChainReceived.textContent}</p>`;
+      } else {
+        const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
+        declineHTML += `<p><strong>Withdrawal Type:</strong> Internal Transfer</p>`;
+        declineHTML += `<p><strong>Coin:</strong> ${internalCoinName.textContent}</p>`;
+        declineHTML += `<p><strong>Recipient Type:</strong> ${recipientType.toUpperCase()}</p>`;
+        declineHTML += `<p><strong>Recipient:</strong> ${internalRecipient.value}</p>`;
+        declineHTML += `<p><strong>Amount:</strong> ${internalAmount.value} ${selectedAsset.name}</p>`;
+        declineHTML += `<p><strong>Fee:</strong> ${internalFees.textContent}</p>`;
+        declineHTML += `<p><strong>Amount Received:</strong> ${internalReceived.textContent}</p>`;
+      }
+      declineDetails.innerHTML = declineHTML;
+      declineModal.classList.remove("hidden");
+      setTimeout(() => { declineModal.classList.add("visible"); }, 10);
+    }
+    declineCloseBtn.addEventListener("click", () => {
+      declineModal.classList.remove("visible");
+      setTimeout(() => {
+        declineModal.classList.add("hidden");
+        resetTransaction();
+        withdrawPage.classList.add("hidden");
+        assetsPage.classList.remove("hidden");
+      }, 300);
+    });
+  </script>
+</body>
+</html>

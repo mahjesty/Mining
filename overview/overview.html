@@ -4,33 +4,43 @@
     <meta charset="UTF-8" />
     <!-- Ensure proper scaling on mobile devices -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wallets - Dark Theme</title>
+    <title>Wallets - Professional Dark Theme</title>
+    <!-- FontAwesome for professional icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <!-- Google Font: Roboto for a modern look -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <!-- React and ReactDOM -->
     <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <!-- Babel for JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Axios CDN (used by dummyAxios below) -->
+    <!-- Axios CDN (for API calls) -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-      /* ---------------------------
-         DARK THEME + RESPONSIVE STYLES
-         Adjust colors to your liking
-         --------------------------- */
+      /* Global Styles */
       body {
         margin: 0;
         padding: 0;
         background: #121212;
-        color: #fff;
-        font-family: Arial, sans-serif;
+        color: #e0e0e0;
+        font-family: "Roboto", sans-serif;
       }
       .container {
+        width: 90%;
         max-width: 900px;
         margin: 0 auto;
         padding: 20px;
+        background: #121212;
       }
-
-      /* Header: Exchange / Web3 tabs */
+      /* Header Styles */
       .header {
         display: flex;
         justify-content: center;
@@ -44,17 +54,17 @@
         color: #bbb;
         padding: 8px 12px;
         cursor: pointer;
+        transition: color 0.3s;
       }
       .tab:hover {
         color: #fff;
       }
       .activeTab {
         color: #00c46e;
-        font-weight: bold;
+        font-weight: 700;
         border-bottom: 2px solid #00c46e;
       }
-
-      /* Secondary menu: Overview, Earn, Funding, Spot */
+      /* Secondary Menu Styles */
       .menu {
         display: flex;
         justify-content: center;
@@ -68,23 +78,23 @@
         color: #bbb;
         padding: 6px 10px;
         cursor: pointer;
+        transition: color 0.3s;
       }
       .menuItem:hover {
         color: #fff;
       }
       .activeMenu {
         color: #00c46e;
-        font-weight: bold;
+        font-weight: 700;
         border-bottom: 2px solid #00c46e;
       }
-
       /* Balance Section */
       .balanceContainer {
         text-align: center;
         margin-bottom: 20px;
       }
       .balanceContainer h3 {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         margin-bottom: 10px;
       }
       .balance {
@@ -101,46 +111,72 @@
         margin-top: 10px;
         color: #00c46e;
       }
-
-      /* Chart placeholder */
+      /* Chart Container */
       .chartContainer {
-        background: #1e1e1e;
+        background: #121212;
         border-radius: 8px;
         padding: 20px;
-        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto 40px;
       }
       .chartLine {
         width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
+        height: auto;
+        display: block;
       }
-
-      /* History / Assets Lists */
-      .history,
-      .assetsList {
+      .grid-lines line {
+        stroke: #444;
+        stroke-width: 0.5;
+      }
+      .axis {
+        stroke: #777;
+        stroke-width: 1;
+      }
+      .tick-label {
+        fill: #bbb;
+        font-size: 3px;
+      }
+      @keyframes dash {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      .chartLinePath {
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: dash 2s ease-out forwards;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      /* Crypto/Account & Activity Summary Containers */
+      .cryptoList,
+      .activitySummary {
         margin: 20px 0;
         padding: 10px;
-        background: #1e1e1e;
+        background: #121212;
         border-radius: 8px;
       }
-      .history h3,
-      .assetsList h3 {
+      .cryptoList h3,
+      .activitySummary h3 {
         margin-bottom: 10px;
       }
-      .historyItem,
-      .cryptoItem {
+      .cryptoItem,
+      .activityItem {
         display: flex;
         justify-content: space-between;
         padding: 5px 0;
       }
-      .historyItem span:last-child {
-        color: #00c46e;
-      }
       .cryptoItem img {
         margin-right: 8px;
       }
-
-      /* Action buttons: Deposit, Withdraw, Buy, Transfer */
+      .activityItem span:last-child {
+        color: #00c46e;
+      }
+      /* Action Buttons */
       .actions {
         display: flex;
         justify-content: center;
@@ -157,13 +193,13 @@
         font-size: 0.9rem;
         cursor: pointer;
         min-width: 100px;
+        transition: background 0.3s, color 0.3s;
       }
       .actionButton:hover {
         background: #00c46e;
         color: #000;
       }
-
-      /* Detail Tabs: Crypto / Account */
+      /* Detail Tabs */
       .details {
         display: flex;
         justify-content: center;
@@ -177,6 +213,7 @@
         border-radius: 4px;
         padding: 10px 20px;
         cursor: pointer;
+        transition: color 0.3s;
       }
       .detailTab:hover {
         color: #fff;
@@ -185,39 +222,6 @@
         border-color: #00c46e;
         color: #00c46e;
       }
-
-      /* Crypto list */
-      .cryptoList {
-        background: #1e1e1e;
-        border-radius: 8px;
-        padding: 10px;
-      }
-      .cryptoItem {
-        margin-bottom: 10px;
-        align-items: center;
-      }
-      .cryptoName {
-        font-weight: 500;
-      }
-      .cryptoBalance {
-        color: #00c46e;
-      }
-
-      /* Earnings section if detail = Account */
-      .earnings {
-        background: #1e1e1e;
-        border-radius: 8px;
-        padding: 10px;
-      }
-      .earningItem {
-        display: flex;
-        justify-content: space-between;
-        padding: 5px 0;
-      }
-      .earningItem span:last-child {
-        color: #00c46e;
-      }
-
       /* Footer */
       .footer {
         text-align: center;
@@ -225,15 +229,14 @@
         color: #555;
         margin-top: 30px;
       }
-
-      /* Modal styles */
+      /* Modal Styles */
       .modalOverlay {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.7);
+        background: rgba(0, 0, 0, 0.7);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -255,13 +258,13 @@
         background: transparent;
         color: #00c46e;
         cursor: pointer;
+        transition: background 0.3s, color 0.3s;
       }
       .modalContent button:hover {
         background: #00c46e;
         color: #000;
       }
-
-      /* Responsive media query */
+      /* Responsive Adjustments */
       @media (max-width: 600px) {
         .header,
         .menu,
@@ -279,6 +282,9 @@
         .balance {
           font-size: 1.4rem;
         }
+        .chartContainer {
+          padding: 15px;
+        }
       }
     </style>
   </head>
@@ -290,7 +296,6 @@
         get: (url) => {
           return new Promise((resolve, reject) => {
             setTimeout(() => {
-              // Simulate some data from different endpoints:
               if (url === "/users/wallet") {
                 resolve({
                   data: {
@@ -309,7 +314,6 @@
                   }
                 });
               } else if (url.includes("api.coingecko.com")) {
-                // Return a dummy BTC price
                 resolve({ data: { bitcoin: { usd: 21000 } } });
               } else {
                 reject("Unknown URL");
@@ -319,16 +323,56 @@
         }
       };
 
-      // Dummy components for Chart, DepositModal, and Footer
+      // Advanced Chart Component with grid, axes, labels, and drop shadow
       const Chart = () => (
         <div className="chartContainer">
-          {/* A placeholder "green line" */}
-          <svg className="chartLine" viewBox="0 0 100 40" preserveAspectRatio="none">
-            <polyline
+          <svg className="chartLine" viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="chartGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#00c46e" />
+                <stop offset="100%" stopColor="#007BFF" />
+              </linearGradient>
+              <filter id="dropShadow">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
+                <feOffset in="blur" dx="1" dy="1" result="offsetBlur" />
+                <feMerge>
+                  <feMergeNode in="offsetBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            {/* Vertical Grid Lines */}
+            <g className="grid-lines">
+              {Array.from({ length: 9 }, (_, i) => (
+                <line key={i} x1={(i + 1) * 10} y1="5" x2={(i + 1) * 10} y2="45" />
+              ))}
+              {/* Horizontal Grid Lines */}
+              {[10, 20, 30, 40].map((y, i) => (
+                <line key={i} x1="5" y1={y} x2="95" y2={y} />
+              ))}
+            </g>
+            {/* Axes */}
+            <line className="axis" x1="5" y1="45" x2="95" y2="45" />
+            <line className="axis" x1="5" y1="5" x2="5" y2="45" />
+            {/* Y-axis Tick Labels */}
+            {[[10, "40"], [20, "30"], [30, "20"], [40, "10"]].map(([y, label], i) => (
+              <text key={i} className="tick-label" x="2" y={y + 1} textAnchor="end">
+                {label}
+              </text>
+            ))}
+            {/* X-axis Tick Labels */}
+            {[[10, "Jan"], [30, "Feb"], [50, "Mar"], [70, "Apr"], [90, "May"]].map(([x, label], i) => (
+              <text key={i} className="tick-label" x={x} y="48" textAnchor="middle">
+                {label}
+              </text>
+            ))}
+            {/* Smooth Line Chart with Drop Shadow */}
+            <path
+              className="chartLinePath drop-shadow"
               fill="none"
-              stroke="#00c46e"
+              stroke="url(#chartGradient)"
               strokeWidth="2"
-              points="0,30 20,25 40,20 60,10 80,15 100,5"
+              d="M5,40 C20,35 30,30 45,28 C60,26 70,20 85,18 C90,16 95,12 95,10"
             />
           </svg>
         </div>
@@ -337,8 +381,8 @@
       const DepositModal = ({ onClose }) => (
         <div className="modalOverlay">
           <div className="modalContent">
-            <h3>Deposit Modal</h3>
-            <p>Here you can deposit funds.</p>
+            <h3>Deposit Funds</h3>
+            <p>Please deposit your funds to continue trading.</p>
             <button onClick={onClose}>Close</button>
           </div>
         </div>
@@ -350,13 +394,6 @@
         </div>
       );
 
-      // Replace react-icons with simple Unicode icons for this demo
-      const FaArrowCircleUp = () => <span style={{ fontSize: "18px" }}>⬆️</span>;
-      const FaArrowCircleDown = () => <span style={{ fontSize: "18px" }}>⬇️</span>;
-      const FaShoppingCart = () => <span style={{ fontSize: "18px" }}>🛒</span>;
-      const FaExchangeAlt = () => <span style={{ fontSize: "18px" }}>🔄</span>;
-
-      // Main Wallets component
       function Wallets() {
         const { useState, useEffect } = React;
         const [wallets, setWallets] = useState([]);
@@ -379,22 +416,6 @@
           Litecoin: { image: "https://via.placeholder.com/24?text=LTC", price: "$80.00" }
         };
 
-        // Sample data for different sections
-        const earningsHistory = [
-          { date: "2025-01-10", amount: "0.00000788 ≈ $0.74008136" },
-          { date: "2025-01-09", amount: "0.00000545 ≈ $0.51230956" },
-        ];
-        const fundingHistory = [
-          { type: "Deposit", date: "2025-01-12", amount: "1000 USDT" },
-          { type: "Withdraw", date: "2025-01-11", amount: "500 USDT" },
-        ];
-        const spotHistory = [
-          { name: "BTC", balance: "0.00000852" },
-          { name: "ETH", balance: "0.001238" },
-          { name: "USDT", balance: "1500.34" },
-        ];
-
-        // Tab handlers
         const handleTabChange = (tab) => {
           setActiveTab(tab);
         };
@@ -404,8 +425,6 @@
         const handleDetailChange = (detail) => {
           setActiveDetail(detail);
         };
-
-        // Deposit modal handlers
         const openDepositModal = () => {
           setDepositModalOpen(true);
         };
@@ -413,18 +432,17 @@
           setDepositModalOpen(false);
         };
 
-        // Fetch wallet details (dummy data)
         useEffect(() => {
           const fetchWalletDetails = async () => {
             try {
               const response = await dummyAxios.get("/users/wallet");
               const walletData = response.data.wallets;
-              const updatedWallets = walletData.map(wallet => {
+              const updatedWallets = walletData.map((wallet) => {
                 const cryptoData = cryptocurrencyData[wallet.currency];
                 return {
                   ...wallet,
                   price: cryptoData ? cryptoData.price : "N/A",
-                  image: cryptoData ? cryptoData.image : null
+                  image: cryptoData ? cryptoData.image : null,
                 };
               });
               setWallets(updatedWallets);
@@ -436,7 +454,6 @@
           fetchWalletDetails();
         }, []);
 
-        // Fetch BTC balance
         useEffect(() => {
           const fetchBtcWalletBalance = async () => {
             try {
@@ -454,7 +471,6 @@
           fetchBtcWalletBalance();
         }, []);
 
-        // Fetch BTC price
         useEffect(() => {
           const fetchBtcPrice = async () => {
             try {
@@ -471,7 +487,6 @@
           fetchBtcPrice();
         }, []);
 
-        // Calculate PnL
         useEffect(() => {
           if (btcPrice && initialBtcPrice && btcBalance) {
             const pnlAmount = (btcPrice - initialBtcPrice) * btcBalance;
@@ -483,14 +498,12 @@
           }
         }, [btcPrice, initialBtcPrice, btcBalance]);
 
-        // BTC balance in USD
-        const totalBtcInUsd = btcBalance && btcPrice
-          ? (btcBalance * btcPrice).toFixed(2)
-          : "Loading...";
+        const totalBtcInUsd =
+          btcBalance && btcPrice ? (btcBalance * btcPrice).toFixed(2) : "Loading...";
 
         return (
           <div className="container">
-            {/* Top tabs */}
+            {/* Top Tabs */}
             <header className="header">
               <button
                 className={"tab " + (activeTab === "Exchange" ? "activeTab" : "")}
@@ -506,7 +519,7 @@
               </button>
             </header>
 
-            {/* Secondary menu */}
+            {/* Secondary Menu - retains all top options */}
             <div className="menu">
               <button
                 className={"menuItem " + (activeMenu === "Overview" ? "activeMenu" : "")}
@@ -534,7 +547,7 @@
               </button>
             </div>
 
-            {/* Balance info */}
+            {/* Balance Info */}
             <div className="balanceContainer">
               <h3>Total Balance</h3>
               <div className="balance">
@@ -545,71 +558,33 @@
               </div>
               {pnl && (
                 <div className="pnl">
-                  <span>PNL: {pnl.amount} BTC ({pnl.percentage}%)</span>
+                  <span>
+                    PNL: {pnl.amount} BTC ({pnl.percentage}%)
+                  </span>
                 </div>
               )}
             </div>
 
-            {/* Overview => Chart */}
+            {/* Overview => Chart (only shows when Overview is active) */}
             {activeMenu === "Overview" && <Chart />}
 
-            {/* Earn => Earnings history */}
-            {activeMenu === "Earn" && (
-              <div className="history">
-                <h3>Earnings History</h3>
-                {earningsHistory.map((item, index) => (
-                  <div key={index} className="historyItem">
-                    <span>{item.date}</span>
-                    <span>{item.amount}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Funding => Funding history */}
-            {activeMenu === "Funding" && (
-              <div className="history">
-                <h3>Funding History</h3>
-                {fundingHistory.map((item, index) => (
-                  <div key={index} className="historyItem">
-                    <span>{item.type}</span>
-                    <span>{item.date}</span>
-                    <span>{item.amount}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Spot => Spot assets */}
-            {activeMenu === "Spot" && (
-              <div className="assetsList">
-                <h3>Spot Assets</h3>
-                {spotHistory.map((crypto) => (
-                  <div className="cryptoItem" key={crypto.name}>
-                    <span>{crypto.name}</span>
-                    <span>{crypto.balance}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Action buttons */}
+            {/* Action Buttons */}
             <div className="actions">
               <button className="actionButton" onClick={openDepositModal}>
-                <FaArrowCircleUp /> Deposit
+                <i className="fas fa-cloud-upload-alt"></i> Deposit
               </button>
               <button className="actionButton">
-                <FaArrowCircleDown /> Withdraw
+                <i className="fas fa-cloud-download-alt"></i> Withdraw
               </button>
               <button className="actionButton">
-                <FaShoppingCart /> Buy
+                <i className="fas fa-credit-card"></i> Buy
               </button>
               <button className="actionButton">
-                <FaExchangeAlt /> Transfer
+                <i className="fas fa-retweet"></i> Transfer
               </button>
             </div>
 
-            {/* Detail Tabs (Crypto / Account) */}
+            {/* Detail Tabs */}
             <div className="details">
               <button
                 className={"detailTab " + (activeDetail === "Crypto" ? "activeDetail" : "")}
@@ -625,7 +600,7 @@
               </button>
             </div>
 
-            {/* Show Crypto wallets or Account summary */}
+            {/* Conditional Rendering: Crypto Wallets or Account Summary */}
             {activeDetail === "Crypto" ? (
               <div className="cryptoList">
                 {wallets.map((wallet) => (
@@ -643,14 +618,27 @@
                 ))}
               </div>
             ) : (
-              <div className="earnings">
-                <div className="earningItem">
-                  <span>Earn</span>
-                  <span>0.00000788 ≈ $0.74008136</span>
+              <div className="activitySummary">
+                <h3>Activity Summary</h3>
+                <div className="activityItem">
+                  <span>Earnings</span>
+                  <span>N/A</span>
                 </div>
-                <div className="earningItem">
+                <div className="activityItem">
                   <span>Funding</span>
-                  <span>0.00000064 ≈ $0.06080278</span>
+                  <span>N/A</span>
+                </div>
+                <div className="activityItem">
+                  <span>Mining</span>
+                  <span>N/A</span>
+                </div>
+                <div className="activityItem">
+                  <span>Trade</span>
+                  <span>N/A</span>
+                </div>
+                <div className="activityItem">
+                  <span>Copy Trading</span>
+                  <span>N/A</span>
                 </div>
               </div>
             )}

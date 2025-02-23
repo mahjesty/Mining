@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Ensure proper scaling on mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wallets - Dark Theme</title>
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Axios CDN (used by dummyAxios below) -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      /* ---------------------------
+         DARK THEME + RESPONSIVE STYLES
+         Adjust colors to your liking
+         --------------------------- */
+      body {
+        margin: 0;
+        padding: 0;
+        background: #121212;
+        color: #fff;
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Header: Exchange / Web3 tabs */
+      .header {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 20px;
+      }
+      .tab {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: #bbb;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      .tab:hover {
+        color: #fff;
+      }
+      .activeTab {
+        color: #00c46e;
+        font-weight: bold;
+        border-bottom: 2px solid #00c46e;
+      }
+
+      /* Secondary menu: Overview, Earn, Funding, Spot */
+      .menu {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-bottom: 30px;
+      }
+      .menuItem {
+        background: none;
+        border: none;
+        font-size: 0.95rem;
+        color: #bbb;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+      .menuItem:hover {
+        color: #fff;
+      }
+      .activeMenu {
+        color: #00c46e;
+        font-weight: bold;
+        border-bottom: 2px solid #00c46e;
+      }
+
+      /* Balance Section */
+      .balanceContainer {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .balanceContainer h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+      .balance {
+        font-size: 1.8rem;
+        font-weight: 500;
+      }
+      .subBalance {
+        display: block;
+        font-size: 0.9rem;
+        color: #888;
+        margin-top: 5px;
+      }
+      .pnl {
+        margin-top: 10px;
+        color: #00c46e;
+      }
+
+      /* Chart placeholder */
+      .chartContainer {
+        background: #1e1e1e;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+      }
+      .chartLine {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+
+      /* History / Assets Lists */
+      .history,
+      .assetsList {
+        margin: 20px 0;
+        padding: 10px;
+        background: #1e1e1e;
+        border-radius: 8px;
+      }
+      .history h3,
+      .assetsList h3 {
+        margin-bottom: 10px;
+      }
+      .historyItem,
+      .cryptoItem {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+      }
+      .historyItem span:last-child {
+        color: #00c46e;
+      }
+      .cryptoItem img {
+        margin-right: 8px;
+      }
+
+      /* Action buttons: Deposit, Withdraw, Buy, Transfer */
+      .actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .actionButton {
+        border: 1px solid #00c46e;
+        color: #00c46e;
+        background: transparent;
+        border-radius: 4px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        min-width: 100px;
+      }
+      .actionButton:hover {
+        background: #00c46e;
+        color: #000;
+      }
+
+      /* Detail Tabs: Crypto / Account */
+      .details {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 20px;
+      }
+      .detailTab {
+        color: #bbb;
+        border: 1px solid #333;
+        background: transparent;
+        border-radius: 4px;
+        padding: 10px 20px;
+        cursor: pointer;
+      }
+      .detailTab:hover {
+        color: #fff;
+      }
+      .activeDetail {
+        border-color: #00c46e;
+        color: #00c46e;
+      }
+
+      /* Crypto list */
+      .cryptoList {
+        background: #1e1e1e;
+        border-radius: 8px;
+        padding: 10px;
+      }
+      .cryptoItem {
+        margin-bottom: 10px;
+        align-items: center;
+      }
+      .cryptoName {
+        font-weight: 500;
+      }
+      .cryptoBalance {
+        color: #00c46e;
+      }
+
+      /* Earnings section if detail = Account */
+      .earnings {
+        background: #1e1e1e;
+        border-radius: 8px;
+        padding: 10px;
+      }
+      .earningItem {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+      }
+      .earningItem span:last-child {
+        color: #00c46e;
+      }
+
+      /* Footer */
+      .footer {
+        text-align: center;
+        padding: 15px 0;
+        color: #555;
+        margin-top: 30px;
+      }
+
+      /* Modal styles */
+      .modalOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+      }
+      .modalContent {
+        background: #1e1e1e;
+        color: #fff;
+        border: 1px solid #333;
+        border-radius: 4px;
+        padding: 20px;
+        width: 300px;
+        text-align: center;
+      }
+      .modalContent button {
+        margin-top: 10px;
+        padding: 8px 16px;
+        border: 1px solid #00c46e;
+        background: transparent;
+        color: #00c46e;
+        cursor: pointer;
+      }
+      .modalContent button:hover {
+        background: #00c46e;
+        color: #000;
+      }
+
+      /* Responsive media query */
+      @media (max-width: 600px) {
+        .header,
+        .menu,
+        .details {
+          flex-direction: column;
+          align-items: center;
+        }
+        .tab,
+        .menuItem,
+        .detailTab {
+          width: auto;
+          margin: 5px 0;
+          text-align: center;
+        }
+        .balance {
+          font-size: 1.4rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      // Dummy axios to simulate API calls
+      const dummyAxios = {
+        get: (url) => {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              // Simulate some data from different endpoints:
+              if (url === "/users/wallet") {
+                resolve({
+                  data: {
+                    wallets: [
+                      { currency: "BTC", balance: "0.001", initial_btc_price: 20000 },
+                      { currency: "ETH", balance: "0.5" }
+                    ]
+                  }
+                });
+              } else if (url === "/users/wallet/btc") {
+                resolve({
+                  data: {
+                    wallets: [
+                      { balance: 0.001, initial_btc_price: 20000 }
+                    ]
+                  }
+                });
+              } else if (url.includes("api.coingecko.com")) {
+                // Return a dummy BTC price
+                resolve({ data: { bitcoin: { usd: 21000 } } });
+              } else {
+                reject("Unknown URL");
+              }
+            }, 1000);
+          });
+        }
+      };
+
+      // Dummy components for Chart, DepositModal, and Footer
+      const Chart = () => (
+        <div className="chartContainer">
+          {/* A placeholder "green line" */}
+          <svg className="chartLine" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <polyline
+              fill="none"
+              stroke="#00c46e"
+              strokeWidth="2"
+              points="0,30 20,25 40,20 60,10 80,15 100,5"
+            />
+          </svg>
+        </div>
+      );
+
+      const DepositModal = ({ onClose }) => (
+        <div className="modalOverlay">
+          <div className="modalContent">
+            <h3>Deposit Modal</h3>
+            <p>Here you can deposit funds.</p>
+            <button onClick={onClose}>Close</button>
+          </div>
+        </div>
+      );
+
+      const Footer = ({ activeTab }) => (
+        <div className="footer">
+          <p>© 2025 Crypto Exchange | Active Tab: {activeTab}</p>
+        </div>
+      );
+
+      // Replace react-icons with simple Unicode icons for this demo
+      const FaArrowCircleUp = () => <span style={{ fontSize: "18px" }}>⬆️</span>;
+      const FaArrowCircleDown = () => <span style={{ fontSize: "18px" }}>⬇️</span>;
+      const FaShoppingCart = () => <span style={{ fontSize: "18px" }}>🛒</span>;
+      const FaExchangeAlt = () => <span style={{ fontSize: "18px" }}>🔄</span>;
+
+      // Main Wallets component
+      function Wallets() {
+        const { useState, useEffect } = React;
+        const [wallets, setWallets] = useState([]);
+        const [btcBalance, setBtcBalance] = useState(null);
+        const [btcPrice, setBtcPrice] = useState(null);
+        const [initialBtcPrice, setInitialBtcPrice] = useState(null);
+        const [error, setError] = useState(null);
+        const [activeTab, setActiveTab] = useState("Exchange");
+        const [activeMenu, setActiveMenu] = useState("Overview");
+        const [activeDetail, setActiveDetail] = useState("Account");
+        const [isDepositModalOpen, setDepositModalOpen] = useState(false);
+        const [pnl, setPnl] = useState(null);
+
+        const cryptocurrencyData = {
+          BTC: { image: "https://via.placeholder.com/24?text=BTC", price: "$0.8008414" },
+          ETH: { image: "https://via.placeholder.com/24?text=ETH", price: "$1.24000" },
+          "USDT-TRC20": { image: "https://via.placeholder.com/24?text=USDT", price: "$1.00" },
+          "USDT-ERC20": { image: "https://via.placeholder.com/24?text=USDT", price: "$1.00" },
+          XRP: { image: "https://via.placeholder.com/24?text=XRP", price: "$0.45" },
+          Litecoin: { image: "https://via.placeholder.com/24?text=LTC", price: "$80.00" }
+        };
+
+        // Sample data for different sections
+        const earningsHistory = [
+          { date: "2025-01-10", amount: "0.00000788 ≈ $0.74008136" },
+          { date: "2025-01-09", amount: "0.00000545 ≈ $0.51230956" },
+        ];
+        const fundingHistory = [
+          { type: "Deposit", date: "2025-01-12", amount: "1000 USDT" },
+          { type: "Withdraw", date: "2025-01-11", amount: "500 USDT" },
+        ];
+        const spotHistory = [
+          { name: "BTC", balance: "0.00000852" },
+          { name: "ETH", balance: "0.001238" },
+          { name: "USDT", balance: "1500.34" },
+        ];
+
+        // Tab handlers
+        const handleTabChange = (tab) => {
+          setActiveTab(tab);
+        };
+        const handleMenuChange = (menu) => {
+          setActiveMenu(menu);
+        };
+        const handleDetailChange = (detail) => {
+          setActiveDetail(detail);
+        };
+
+        // Deposit modal handlers
+        const openDepositModal = () => {
+          setDepositModalOpen(true);
+        };
+        const closeDepositModal = () => {
+          setDepositModalOpen(false);
+        };
+
+        // Fetch wallet details (dummy data)
+        useEffect(() => {
+          const fetchWalletDetails = async () => {
+            try {
+              const response = await dummyAxios.get("/users/wallet");
+              const walletData = response.data.wallets;
+              const updatedWallets = walletData.map(wallet => {
+                const cryptoData = cryptocurrencyData[wallet.currency];
+                return {
+                  ...wallet,
+                  price: cryptoData ? cryptoData.price : "N/A",
+                  image: cryptoData ? cryptoData.image : null
+                };
+              });
+              setWallets(updatedWallets);
+            } catch (err) {
+              setError("Error fetching wallet details.");
+              console.error("Error:", err);
+            }
+          };
+          fetchWalletDetails();
+        }, []);
+
+        // Fetch BTC balance
+        useEffect(() => {
+          const fetchBtcWalletBalance = async () => {
+            try {
+              const response = await dummyAxios.get("/users/wallet/btc");
+              const walletData = response.data.wallets;
+              if (walletData && walletData.length > 0) {
+                setBtcBalance(walletData[0].balance);
+                setInitialBtcPrice(walletData[0].initial_btc_price);
+              }
+            } catch (err) {
+              setError("Error fetching BTC wallet details.");
+              console.error("Error:", err);
+            }
+          };
+          fetchBtcWalletBalance();
+        }, []);
+
+        // Fetch BTC price
+        useEffect(() => {
+          const fetchBtcPrice = async () => {
+            try {
+              const response = await dummyAxios.get(
+                "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+              );
+              const price = response.data.bitcoin.usd;
+              setBtcPrice(price);
+            } catch (err) {
+              setError("Error fetching BTC price.");
+              console.error("Error:", err);
+            }
+          };
+          fetchBtcPrice();
+        }, []);
+
+        // Calculate PnL
+        useEffect(() => {
+          if (btcPrice && initialBtcPrice && btcBalance) {
+            const pnlAmount = (btcPrice - initialBtcPrice) * btcBalance;
+            const pnlPercentage = (pnlAmount / (initialBtcPrice * btcBalance)) * 100;
+            setPnl({
+              amount: pnlAmount.toFixed(8),
+              percentage: pnlPercentage.toFixed(2),
+            });
+          }
+        }, [btcPrice, initialBtcPrice, btcBalance]);
+
+        // BTC balance in USD
+        const totalBtcInUsd = btcBalance && btcPrice
+          ? (btcBalance * btcPrice).toFixed(2)
+          : "Loading...";
+
+        return (
+          <div className="container">
+            {/* Top tabs */}
+            <header className="header">
+              <button
+                className={"tab " + (activeTab === "Exchange" ? "activeTab" : "")}
+                onClick={() => handleTabChange("Exchange")}
+              >
+                Exchange
+              </button>
+              <button
+                className={"tab " + (activeTab === "Web3" ? "activeTab" : "")}
+                onClick={() => handleTabChange("Web3")}
+              >
+                Web3
+              </button>
+            </header>
+
+            {/* Secondary menu */}
+            <div className="menu">
+              <button
+                className={"menuItem " + (activeMenu === "Overview" ? "activeMenu" : "")}
+                onClick={() => handleMenuChange("Overview")}
+              >
+                Overview
+              </button>
+              <button
+                className={"menuItem " + (activeMenu === "Earn" ? "activeMenu" : "")}
+                onClick={() => handleMenuChange("Earn")}
+              >
+                Earn
+              </button>
+              <button
+                className={"menuItem " + (activeMenu === "Funding" ? "activeMenu" : "")}
+                onClick={() => handleMenuChange("Funding")}
+              >
+                Funding
+              </button>
+              <button
+                className={"menuItem " + (activeMenu === "Spot" ? "activeMenu" : "")}
+                onClick={() => handleMenuChange("Spot")}
+              >
+                Spot
+              </button>
+            </div>
+
+            {/* Balance info */}
+            <div className="balanceContainer">
+              <h3>Total Balance</h3>
+              <div className="balance">
+                {btcBalance ? `${btcBalance} BTC` : "Loading..."}
+                <span className="subBalance">
+                  {btcPrice ? `≈ $${totalBtcInUsd}` : "≈ Loading..."}
+                </span>
+              </div>
+              {pnl && (
+                <div className="pnl">
+                  <span>PNL: {pnl.amount} BTC ({pnl.percentage}%)</span>
+                </div>
+              )}
+            </div>
+
+            {/* Overview => Chart */}
+            {activeMenu === "Overview" && <Chart />}
+
+            {/* Earn => Earnings history */}
+            {activeMenu === "Earn" && (
+              <div className="history">
+                <h3>Earnings History</h3>
+                {earningsHistory.map((item, index) => (
+                  <div key={index} className="historyItem">
+                    <span>{item.date}</span>
+                    <span>{item.amount}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Funding => Funding history */}
+            {activeMenu === "Funding" && (
+              <div className="history">
+                <h3>Funding History</h3>
+                {fundingHistory.map((item, index) => (
+                  <div key={index} className="historyItem">
+                    <span>{item.type}</span>
+                    <span>{item.date}</span>
+                    <span>{item.amount}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Spot => Spot assets */}
+            {activeMenu === "Spot" && (
+              <div className="assetsList">
+                <h3>Spot Assets</h3>
+                {spotHistory.map((crypto) => (
+                  <div className="cryptoItem" key={crypto.name}>
+                    <span>{crypto.name}</span>
+                    <span>{crypto.balance}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="actions">
+              <button className="actionButton" onClick={openDepositModal}>
+                <FaArrowCircleUp /> Deposit
+              </button>
+              <button className="actionButton">
+                <FaArrowCircleDown /> Withdraw
+              </button>
+              <button className="actionButton">
+                <FaShoppingCart /> Buy
+              </button>
+              <button className="actionButton">
+                <FaExchangeAlt /> Transfer
+              </button>
+            </div>
+
+            {/* Detail Tabs (Crypto / Account) */}
+            <div className="details">
+              <button
+                className={"detailTab " + (activeDetail === "Crypto" ? "activeDetail" : "")}
+                onClick={() => handleDetailChange("Crypto")}
+              >
+                Crypto
+              </button>
+              <button
+                className={"detailTab " + (activeDetail === "Account" ? "activeDetail" : "")}
+                onClick={() => handleDetailChange("Account")}
+              >
+                Account
+              </button>
+            </div>
+
+            {/* Show Crypto wallets or Account summary */}
+            {activeDetail === "Crypto" ? (
+              <div className="cryptoList">
+                {wallets.map((wallet) => (
+                  <div className="cryptoItem" key={wallet.currency}>
+                    {wallet.image && (
+                      <img
+                        src={wallet.image}
+                        alt={wallet.currency}
+                        className="cryptoImage"
+                      />
+                    )}
+                    <span className="cryptoName">{wallet.currency}</span>
+                    <span className="cryptoBalance">{wallet.balance}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="earnings">
+                <div className="earningItem">
+                  <span>Earn</span>
+                  <span>0.00000788 ≈ $0.74008136</span>
+                </div>
+                <div className="earningItem">
+                  <span>Funding</span>
+                  <span>0.00000064 ≈ $0.06080278</span>
+                </div>
+              </div>
+            )}
+
+            {/* Deposit Modal */}
+            {isDepositModalOpen && <DepositModal onClose={closeDepositModal} />}
+
+            {/* Footer */}
+            <Footer activeTab="wallets" />
+          </div>
+        );
+      }
+
+      ReactDOM.render(<Wallets />, document.getElementById("root"));
+    </script>
+  </body>
+</html>

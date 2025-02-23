@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Profile Edit</title>
+  <style>
+    :root {
+      --bg-color: #0d0d0d;
+      --card-bg: #1a1a1a;
+      --text-color: #e0e0e0;
+      --input-bg: #262626;
+      --border-color: #333;
+      /* Darker green accent */
+      --mirror-green: #2e7d32;
+      --hover-green: #388e3c;
+      --transition-speed: 0.3s;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--mirror-green);
+    }
+    form {
+      display: block;
+    }
+    /* Advanced, professional detail containers */
+    .form-group {
+      position: relative;
+      background-color: var(--input-bg);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+      transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    }
+    .form-group:focus-within {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.7);
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: var(--mirror-green);
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      background-color: transparent;
+      border: none;
+      color: var(--text-color);
+      font-size: 16px;
+      outline: none;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #aaa;
+    }
+    .profile-pic {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .profile-pic img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid var(--mirror-green);
+      object-fit: cover;
+    }
+    /* Compact drag & drop file input styling */
+    .dropzone {
+      width: 180px;
+      height: 50px;
+      margin: 10px auto;
+      padding: 5px;
+      border: 2px dashed var(--mirror-green);
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color var(--transition-speed);
+      color: var(--text-color);
+      font-size: 14px;
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dropzone.hover {
+      background-color: rgba(46, 125, 50, 0.1);
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background-color: var(--mirror-green);
+      border: none;
+      border-radius: 4px;
+      color: var(--bg-color);
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color var(--transition-speed);
+    }
+    .btn:hover {
+      background-color: var(--hover-green);
+    }
+    .btn-container {
+      margin-top: 15px;
+    }
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 15px;
+      }
+      .dropzone {
+        width: 150px;
+        height: 45px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Profile Edit</h2>
+    <div class="profile-pic">
+      <img id="profileImage" src="https://via.placeholder.com/120" alt="Profile Picture" />
+    </div>
+    <!-- Compact drag & drop file input -->
+    <div class="dropzone" id="dropzone">
+      Drop photo or click
+      <input type="file" id="imageUpload" accept="image/*" style="display:none;" />
+    </div>
+    <form id="profileForm">
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" placeholder="Enter your full name" required />
+      </div>
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter your username" required />
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="Enter your email" required />
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" placeholder="Enter your phone number" required />
+      </div>
+      <div class="btn-container">
+        <button type="submit" class="btn">Save Changes</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const imageUpload = document.getElementById('imageUpload');
+    const profileImage = document.getElementById('profileImage');
+
+    // Open file selector when dropzone is clicked
+    dropzone.addEventListener('click', () => {
+      imageUpload.click();
+    });
+
+    // Handle file selection
+    imageUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) displayImage(file);
+    });
+
+    // Drag & Drop events
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('hover');
+    });
+    dropzone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('hover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('hover');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        imageUpload.files = e.dataTransfer.files;
+        displayImage(file);
+      }
+    });
+
+    function displayImage(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        profileImage.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Handle form submission with basic validation
+    const profileForm = document.getElementById('profileForm');
+    profileForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const formData = {
+        fullName: document.getElementById('fullName').value.trim(),
+        username: document.getElementById('username').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim()
+      };
+
+      if (!formData.fullName || !formData.username || !formData.email || !formData.phone) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      console.log('Submitted Data:', formData);
+      alert('Profile updated successfully!');
+      // Integrate your AJAX or Fetch API call here to send data to your server
+    });
+  </script>
+</body>
+</html>

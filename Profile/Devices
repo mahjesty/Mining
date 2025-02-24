@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Devices</title>
+  <style>
+    /* ---------- Base Reset & Typography ---------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Roboto", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    /* ---------- Theme Variables ---------- */
+    :root {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --card-bg: #1e1e1e;
+      --accent-color: #4caf50;
+      --btn-gradient: linear-gradient(145deg, #4caf50, #66bb6a);
+      --btn-hover: linear-gradient(145deg, #43a047, #5cae55);
+    }
+    body.light-theme {
+      --bg-color: #f5f5f5;
+      --text-color: #333;
+      --card-bg: #fff;
+      --accent-color: #4caf50;
+      --btn-gradient: linear-gradient(145deg, #ddd, #ccc);
+      --btn-hover: linear-gradient(145deg, #bbb, #aaa);
+    }
+    /* ---------- Container & Layout ---------- */
+    .container {
+      width: 90%;
+      max-width: 480px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+    .page { display: block; }
+    .title-bar {
+      position: relative;
+      text-align: center;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    .title-bar h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    /* Back button style */
+    .back-button {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+    .back-button svg { width: 24px; height: 24px; fill: var(--text-color); }
+    /* ---------- Section Styles ---------- */
+    .section {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    #devicesList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+    }
+    .device-item {
+      flex: 1 1 calc(50% - 10px);
+      background: #272727;
+      padding: 12px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      margin-bottom: 10px;
+    }
+    .device-item strong { color: var(--text-color); }
+    .device-item span { color: var(--text-color); font-size: 0.9rem; }
+    @media (max-width: 480px) {
+      #devicesList { flex-direction: column; }
+      .device-item { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Devices Page Content -->
+  <div id="pageDevices" class="page">
+    <div class="container">
+      <div class="title-bar">
+        <div class="back-button" onclick="showSecurityPage()">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+          </svg>
+        </div>
+        <h1>Devices</h1>
+      </div>
+      <div class="section" id="devicesList">
+        <div class="device-item">
+          <strong>iPhone 12</strong> (Mobile)<br>
+          <span>Last Used: 2023-06-01 14:30</span><br>
+          <span>Location: New York, USA</span>
+        </div>
+        <div class="device-item">
+          <strong>MacBook Pro</strong> (Laptop)<br>
+          <span>Last Used: 2023-06-01 10:15</span><br>
+          <span>Location: San Francisco, USA</span>
+        </div>
+        <div class="device-item">
+          <strong>iPad Air</strong> (Tablet)<br>
+          <span>Last Used: 2023-06-01 12:45</span><br>
+          <span>Location: Chicago, USA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function showSecurityPage() { /* your navigation code */ }
+  </script>
+</body>
+</html>

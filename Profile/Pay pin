@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pay PIN</title>
+  <style>
+    /* ---------- Base Reset & Typography ---------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Roboto", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    :root {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --card-bg: #1e1e1e;
+      --accent-color: #4caf50;
+      --btn-gradient: linear-gradient(145deg, #4caf50, #66bb6a);
+      --btn-hover: linear-gradient(145deg, #43a047, #5cae55);
+    }
+    body.light-theme {
+      --bg-color: #f5f5f5;
+      --text-color: #333;
+      --card-bg: #fff;
+      --accent-color: #4caf50;
+      --btn-gradient: linear-gradient(145deg, #ddd, #ccc);
+      --btn-hover: linear-gradient(145deg, #bbb, #aaa);
+    }
+    .container {
+      width: 90%;
+      max-width: 480px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+    .page { display: block; }
+    .title-bar {
+      position: relative;
+      text-align: center;
+      padding: 16px 0;
+      margin-bottom: 20px;
+    }
+    .title-bar h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    .back-button {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+    .back-button svg { width: 24px; height: 24px; fill: var(--text-color); }
+    /* Advanced Section Style */
+    .section {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      margin-bottom: 20px;
+    }
+    .row { margin-bottom: 16px; }
+    .label {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-color);
+    }
+    .value input {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 6px;
+      background: var(--bg-color);
+      color: var(--text-color);
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: var(--btn-gradient);
+      color: #000;
+      font-size: 1rem;
+      font-weight: bold;
+      text-align: center;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      margin-top: 10px;
+    }
+    .btn:hover { background: var(--btn-hover); transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <!-- Pay PIN Page Content -->
+  <div id="pagePayPin" class="page">
+    <div class="container">
+      <div class="title-bar">
+        <div class="back-button" onclick="showSecurityPage()">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+          </svg>
+        </div>
+        <h1>Pay PIN</h1>
+      </div>
+      <div class="section">
+        <p>Please enter your secure 6-digit PIN. This PIN will serve as your transaction authorization key.</p>
+        <div class="row">
+          <div class="label">Enter Your PIN:</div>
+          <div class="value">
+            <input type="password" id="payPin" placeholder="••••••" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+          </div>
+        </div>
+        <button class="btn" onclick="authenticatePin()">Authenticate PIN</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
